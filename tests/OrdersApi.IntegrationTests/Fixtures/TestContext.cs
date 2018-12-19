@@ -8,7 +8,7 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using OrdersApi.Application;
 using OrdersApi.Contracts.V1.Product.Views;
-using OrdersApi.IntegrationServices.AcquirerApiIntegrationServices.Contracts;
+using OrdersApi.IntegrationServices.LegacyService.Contracts;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;

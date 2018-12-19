@@ -118,7 +118,7 @@
 | SettlementVerificationInterval  | int  | Timespan in minutes for settlement verification attempts |
 | SettlementVerificationLimit  | int  | Timespan in minutes to limit settlement verification |	   
 
-| AcquirerApiSettings | Type | Description                          |
+| LegacyApiSettings | Type | Description                          |
 | ------------- | ------------- | -------------|
 | ApplicationUri | string  | Base http uri used to build the requests |
 | PosRentKey  | string  | External key for the POS Rent product |

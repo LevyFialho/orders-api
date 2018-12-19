@@ -18,10 +18,10 @@ namespace OrdersApi.Domain.CommandHandlers
     public class ReversalCommandsHandler : CommandHandler, IRequestHandler<CreateChargeReversal>, IRequestHandler<ProcessAcquirerAccountReversal>,
         IRequestHandler<VerifyReversalSettlement>
     {
-        protected readonly IAcquirerApiService AcquirerApiService;
+        protected readonly ILegacyApiService AcquirerApiService;
         protected readonly ILogger<ReversalCommandsHandler> Logger;
 
-        public ReversalCommandsHandler(AggregateDataSource repository, IMessageBus bus, IAcquirerApiService acquirerApiService, ILogger<ReversalCommandsHandler> logger) : base(repository, bus)
+        public ReversalCommandsHandler(AggregateDataSource repository, IMessageBus bus, ILegacyApiService acquirerApiService, ILogger<ReversalCommandsHandler> logger) : base(repository, bus)
         {
             AcquirerApiService = acquirerApiService;
             Logger = logger;

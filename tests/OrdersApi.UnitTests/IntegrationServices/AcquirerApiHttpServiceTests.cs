@@ -12,11 +12,11 @@ using OrdersApi.Cqrs.Repository;
 using OrdersApi.Domain.Model.ChargeAggregate;
 using OrdersApi.Domain.Model.ProductAggregate;
 using OrdersApi.Infrastructure.Resilience;
-using OrdersApi.IntegrationServices.AcquirerApiIntegrationServices;
-using OrdersApi.IntegrationServices.AcquirerApiIntegrationServices.Contracts;
+using OrdersApi.IntegrationServices.LegacyService;
+using OrdersApi.IntegrationServices.LegacyService.Contracts;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Newtonsoft.Json;
+using Newtonsoft.Json; 
 using Xunit;
 using Charge = OrdersApi.Domain.Model.ChargeAggregate.Charge;
 
@@ -37,8 +37,8 @@ namespace OrdersApi.UnitTests.IntegrationServices
                 var fixture = new Fixture();
                 var eventStore = new Mock<AggregateDataSource>(null, null, null);
                 var httpClient = new Mock<IHttpClient>();
-                var settings = fixture.Create<AcquirerApiSettings>();
-                var logger = new Mock<ILogger<AcquirerApiHttpService>>();
+                var settings = fixture.Create<LegacyApiSettings>();
+                var logger = new Mock<ILogger<LegacyHttpService>>();
                 var erros = new ErrorResponse()
                 {
                     Errors = new Error[1]
@@ -50,7 +50,7 @@ namespace OrdersApi.UnitTests.IntegrationServices
                         }
                     }
                 };
-                var integrationService = new AcquirerApiHttpService(eventStore.Object, httpClient.Object, settings, logger.Object);
+                var integrationService = new LegacyHttpService(eventStore.Object, httpClient.Object, settings, logger.Object);
 
                 var result = integrationService.GetErrorMessageFromBadRequestResponse(erros);
                 Assert.NotNull(result);
@@ -67,11 +67,11 @@ namespace OrdersApi.UnitTests.IntegrationServices
                 var fixture = new Fixture();
                 var eventStore = new Mock<AggregateDataSource>(null, null, null);
                 var httpClient = new Mock<IHttpClient>();
-                var settings = fixture.Create<AcquirerApiSettings>();
-                var logger = new Mock<ILogger<AcquirerApiHttpService>>();
+                var settings = fixture.Create<LegacyApiSettings>();
+                var logger = new Mock<ILogger<LegacyHttpService>>();
                 var charge = fixture.Create<Charge>();
                 var acquirerAccount = fixture.Create<AcquirerAccount>();
-                var integrationService = new AcquirerApiHttpService(eventStore.Object, httpClient.Object, settings, logger.Object);
+                var integrationService = new LegacyHttpService(eventStore.Object, httpClient.Object, settings, logger.Object);
                 var expected = settings?.ApplicationUri + "/v1/acquirers/" + acquirerAccount?.AcquirerKey + "/charges/?externalKey=" + charge?.AggregateKey;
                 var result = integrationService.BuildGetChargeUrl(charge.AggregateKey ,acquirerAccount);
                  
@@ -87,14 +87,13 @@ namespace OrdersApi.UnitTests.IntegrationServices
                 var fixture = new Fixture();
                 var eventStore = new Mock<AggregateDataSource>(null, null, null);
                 var httpClient = new Mock<IHttpClient>();
-                var settings = fixture.Create<AcquirerApiSettings>();
+                var settings = fixture.Create<LegacyApiSettings>();
                 var charge = fixture.Create<Charge>();
                 var product = fixture.Create<Product>();
-                var logger = new Mock<ILogger<AcquirerApiHttpService>>();
-                product.ExternalKey = settings.ExternalPosRentKey + settings.PosRentKey + "1";
+                var logger = new Mock<ILogger<LegacyHttpService>>(); 
                 var acquirerAccount = fixture.Create<AcquirerAccount>();
 
-                var integrationService = new Mock<AcquirerApiHttpService>(eventStore.Object, httpClient.Object, settings, logger.Object) { CallBase = true };
+                var integrationService = new Mock<LegacyHttpService>(eventStore.Object, httpClient.Object, settings, logger.Object) { CallBase = true };
                 var postCharge = integrationService.Object.CreatePostCharge(charge, acquirerAccount, product);
                  
                 Assert.Equal(charge.AggregateKey, postCharge.ExternalKey);
@@ -111,21 +110,19 @@ namespace OrdersApi.UnitTests.IntegrationServices
                 var fixture = new Fixture();
                 var eventStore = new Mock<AggregateDataSource>(null, null, null);
                 var httpClient = new Mock<IHttpClient>();
-                var settings = fixture.Create<AcquirerApiSettings>();
+                var settings = fixture.Create<LegacyApiSettings>();
                 var charge = fixture.Create<Charge>();
                 var product = fixture.Create<Product>();
-                var logger = new Mock<ILogger<AcquirerApiHttpService>>();
-                product.ExternalKey = settings.ExternalPosRentKey;
+                var logger = new Mock<ILogger<LegacyHttpService>>(); 
                 var acquirerAccount = fixture.Create<AcquirerAccount>();
 
-                var integrationService = new Mock<AcquirerApiHttpService>(eventStore.Object, httpClient.Object, settings, logger.Object) { CallBase = true };
+                var integrationService = new Mock<LegacyHttpService>(eventStore.Object, httpClient.Object, settings, logger.Object) { CallBase = true };
                 var postCharge = integrationService.Object.CreatePostCharge(charge, acquirerAccount, product);
                  
                 Assert.Equal(charge.AggregateKey, postCharge.ExternalKey);
                 Assert.Equal(charge.OrderDetails.ChargeDate, postCharge.ChargeDate);
                 Assert.Equal(charge.OrderDetails.Amount, postCharge.ChargeAmount.Amount);
-                Assert.Equal(settings.DefaultCurrencyCode, postCharge.ChargeAmount.Currency);
-                Assert.Equal(settings.ExternalPosRentChargeTypeCode, postCharge.ChargeType);
+                Assert.Equal(settings.DefaultCurrencyCode, postCharge.ChargeAmount.Currency); 
 
             }
 
@@ -135,21 +132,19 @@ namespace OrdersApi.UnitTests.IntegrationServices
                 var fixture = new Fixture();
                 var eventStore = new Mock<AggregateDataSource>(null, null, null);
                 var httpClient = new Mock<IHttpClient>();
-                var settings = fixture.Create<AcquirerApiSettings>();
-                var logger = new Mock<ILogger<AcquirerApiHttpService>>();
+                var settings = fixture.Create<LegacyApiSettings>();
+                var logger = new Mock<ILogger<LegacyHttpService>>();
                 var charge = fixture.Create<Charge>();
-                var product = fixture.Create<Product>();
-                product.ExternalKey = settings.PosRentKey;
+                var product = fixture.Create<Product>(); 
                 var acquirerAccount = fixture.Create<AcquirerAccount>();
 
-                var integrationService = new Mock<AcquirerApiHttpService>(eventStore.Object, httpClient.Object, settings, logger.Object) { CallBase = true };
+                var integrationService = new Mock<LegacyHttpService>(eventStore.Object, httpClient.Object, settings, logger.Object) { CallBase = true };
                 var postCharge = integrationService.Object.CreatePostCharge(charge, acquirerAccount, product);
                  
                 Assert.Equal(charge.AggregateKey, postCharge.ExternalKey);
                 Assert.Equal(charge.OrderDetails.ChargeDate, postCharge.ChargeDate);
                 Assert.Equal(charge.OrderDetails.Amount, postCharge.ChargeAmount.Amount);
-                Assert.Equal(settings.DefaultCurrencyCode, postCharge.ChargeAmount.Currency);
-                Assert.Equal(settings.PosRentChargeTypeCode, postCharge.ChargeType);
+                Assert.Equal(settings.DefaultCurrencyCode, postCharge.ChargeAmount.Currency); 
 
             }
         }
@@ -162,11 +157,11 @@ namespace OrdersApi.UnitTests.IntegrationServices
                 var fixture = new Fixture();
                 var eventStore = new Mock<AggregateDataSource>(null, null, null);
                 var httpClient = new Mock<IHttpClient>();
-                var settings = fixture.Create<AcquirerApiSettings>(); 
+                var settings = fixture.Create<LegacyApiSettings>(); 
                 var reversal = fixture.Create<Reversal>(); 
-                var logger = new Mock<ILogger<AcquirerApiHttpService>>(); 
+                var logger = new Mock<ILogger<LegacyHttpService>>(); 
 
-                var integrationService = new Mock<AcquirerApiHttpService>(eventStore.Object, httpClient.Object, settings, logger.Object) { CallBase = true };
+                var integrationService = new Mock<LegacyHttpService>(eventStore.Object, httpClient.Object, settings, logger.Object) { CallBase = true };
                 var postCharge = integrationService.Object.CreateReversalRequest(reversal);
 
                 Assert.Equal(reversal.ReversalKey, postCharge.ExternalKey); 
@@ -183,14 +178,14 @@ namespace OrdersApi.UnitTests.IntegrationServices
             {
                 var fixture = new Fixture();
                 var eventStore = new Mock<AggregateDataSource>(null, null, null);
-                var logger = new Mock<ILogger<AcquirerApiHttpService>>();
+                var logger = new Mock<ILogger<LegacyHttpService>>();
                 var httpClient = new Mock<IHttpClient>();
-                var settings = fixture.Create<AcquirerApiSettings>();
+                var settings = fixture.Create<LegacyApiSettings>();
                 var charge = fixture.Create<Charge>();
                 var paymentData = new Mock<PaymentMethodData>((IPaymentMethod)new InvalidPaymentMethod()) { CallBase = true };
                 charge.PaymentMethodData = paymentData.Object;
 
-                var integrationService = new Mock<AcquirerApiHttpService>(eventStore.Object, httpClient.Object, settings, logger.Object) { CallBase = true };
+                var integrationService = new Mock<LegacyHttpService>(eventStore.Object, httpClient.Object, settings, logger.Object) { CallBase = true };
                 var result = await integrationService.Object.CheckIfChargeOrderWasSent(charge.PaymentMethodData.GetData() as AcquirerAccount, charge.AggregateKey);
 
                 Assert.False(result.Success); 
@@ -202,9 +197,9 @@ namespace OrdersApi.UnitTests.IntegrationServices
             {
                 var fixture = new Fixture();
                 var eventStore = new Mock<AggregateDataSource>(null, null, null);
-                var logger = new Mock<ILogger<AcquirerApiHttpService>>();
+                var logger = new Mock<ILogger<LegacyHttpService>>();
                 var httpClient = new Mock<IHttpClient>();
-                var settings = fixture.Create<AcquirerApiSettings>();
+                var settings = fixture.Create<LegacyApiSettings>();
                 var charge = fixture.Create<Charge>();
                 var acquirerAccount = fixture.Create<AcquirerAccount>();
                 var paymentData = new Mock<PaymentMethodData>((IPaymentMethod)acquirerAccount) { CallBase = true };
@@ -215,7 +210,7 @@ namespace OrdersApi.UnitTests.IntegrationServices
                         StatusCode = HttpStatusCode.NotFound
                     }));
 
-                var integrationService = new Mock<AcquirerApiHttpService>(eventStore.Object, httpClient.Object, settings, logger.Object) { CallBase = true };
+                var integrationService = new Mock<LegacyHttpService>(eventStore.Object, httpClient.Object, settings, logger.Object) { CallBase = true };
                 var result = await integrationService.Object.CheckIfChargeOrderWasSent(charge.PaymentMethodData.GetData() as AcquirerAccount, charge.AggregateKey);
 
                 Assert.True(result.Success);
@@ -230,8 +225,8 @@ namespace OrdersApi.UnitTests.IntegrationServices
                 var fixture = new Fixture();
                 var eventStore = new Mock<AggregateDataSource>(null, null, null);
                 var httpClient = new Mock<IHttpClient>();
-                var settings = fixture.Create<AcquirerApiSettings>();
-                var logger = new Mock<ILogger<AcquirerApiHttpService>>();
+                var settings = fixture.Create<LegacyApiSettings>();
+                var logger = new Mock<ILogger<LegacyHttpService>>();
                 var charge = fixture.Create<Charge>();
                 var acquirerAccount = fixture.Create<AcquirerAccount>();
                 var acquirerResponse = new List<GetChargeResponse>()
@@ -240,8 +235,7 @@ namespace OrdersApi.UnitTests.IntegrationServices
                     {
                         
                     }
-                };
-                var mockChargeOrder = new Mock<GetChargeResponse>(); 
+                }; 
 
                 var paymentData = new Mock<PaymentMethodData>((IPaymentMethod)acquirerAccount) { CallBase = true };
                 charge.PaymentMethodData = paymentData.Object;
@@ -251,7 +245,7 @@ namespace OrdersApi.UnitTests.IntegrationServices
                         StatusCode = HttpStatusCode.OK,
                         Content = new StringContent(JsonConvert.SerializeObject(acquirerResponse), Encoding.UTF8) 
                     }));
-                var integrationService = new Mock<AcquirerApiHttpService>(eventStore.Object, httpClient.Object, settings, logger.Object) { CallBase = true }; 
+                var integrationService = new Mock<LegacyHttpService>(eventStore.Object, httpClient.Object, settings, logger.Object) { CallBase = true }; 
 
                 var result = await integrationService.Object.CheckIfChargeOrderWasSent(charge.PaymentMethodData.GetData() as AcquirerAccount, charge.AggregateKey);
 
@@ -267,8 +261,8 @@ namespace OrdersApi.UnitTests.IntegrationServices
                 var fixture = new Fixture();
                 var eventStore = new Mock<AggregateDataSource>(null, null, null);
                 var httpClient = new Mock<IHttpClient>();
-                var settings = fixture.Create<AcquirerApiSettings>();
-                var logger = new Mock<ILogger<AcquirerApiHttpService>>();
+                var settings = fixture.Create<LegacyApiSettings>();
+                var logger = new Mock<ILogger<LegacyHttpService>>();
                 var charge = fixture.Create<Charge>();
                 var exception = new Exception();
                 var acquirerAccount = fixture.Create<AcquirerAccount>();
@@ -277,7 +271,7 @@ namespace OrdersApi.UnitTests.IntegrationServices
                 httpClient.Setup(x => x.GetAsync(It.IsAny<string>(), settings.AuthenticationToken, It.IsAny<string>()))
                     .Throws(exception);
 
-                var integrationService = new Mock<AcquirerApiHttpService>(eventStore.Object, httpClient.Object, settings, logger.Object) { CallBase = true };
+                var integrationService = new Mock<LegacyHttpService>(eventStore.Object, httpClient.Object, settings, logger.Object) { CallBase = true };
                 var result = await integrationService.Object.CheckIfChargeOrderWasSent(charge.PaymentMethodData.GetData() as AcquirerAccount, charge.AggregateKey);
 
                 Assert.False(result.Success);
@@ -296,13 +290,13 @@ namespace OrdersApi.UnitTests.IntegrationServices
                 var fixture = new Fixture();
                 var eventStore = new Mock<AggregateDataSource>(null, null, null);
                 var httpClient = new Mock<IHttpClient>();
-                var logger = new Mock<ILogger<AcquirerApiHttpService>>();
-                var settings = fixture.Create<AcquirerApiSettings>();
+                var logger = new Mock<ILogger<LegacyHttpService>>();
+                var settings = fixture.Create<LegacyApiSettings>();
                 var charge = fixture.Create<Charge>();
                 var paymentData = new Mock<PaymentMethodData>((IPaymentMethod)new InvalidPaymentMethod()) { CallBase = true };
                 charge.PaymentMethodData = paymentData.Object;
 
-                var integrationService = new Mock<AcquirerApiHttpService>(eventStore.Object, httpClient.Object, settings, logger.Object) { CallBase = true };
+                var integrationService = new Mock<LegacyHttpService>(eventStore.Object, httpClient.Object, settings, logger.Object) { CallBase = true };
                 var result = await integrationService.Object.SendReversalOrder(charge, "xpto");
 
                 Assert.False(result.Success);
@@ -316,7 +310,7 @@ namespace OrdersApi.UnitTests.IntegrationServices
                 var fixture = new Fixture();
                 var eventStore = new Mock<AggregateDataSource>(null, null, null);
                 var httpClient = new Mock<IHttpClient>();
-                var settings = fixture.Create<AcquirerApiSettings>();
+                var settings = fixture.Create<LegacyApiSettings>();
                 var charge = fixture.Create<Charge>();
                 charge.OrderDetails = new OrderDetails()
                 {
@@ -331,7 +325,7 @@ namespace OrdersApi.UnitTests.IntegrationServices
                     ReversalDueDate = DateTime.UtcNow
                 };
                 charge.Reversals = new List<Reversal>(){reversal};
-                var logger = new Mock<ILogger<AcquirerApiHttpService>>();
+                var logger = new Mock<ILogger<LegacyHttpService>>();
                 var postCharge = fixture.Create<CreateReversalRequest>();
                 var acquirerAccount = fixture.Create<AcquirerAccount>();
                 var errorDetails = new List<string>() { "X" };
@@ -343,7 +337,7 @@ namespace OrdersApi.UnitTests.IntegrationServices
                         StatusCode = HttpStatusCode.BadRequest,
                         Content = new StringContent(""),
                     }));
-                var integrationService = new Mock<AcquirerApiHttpService>(eventStore.Object, httpClient.Object, settings, logger.Object) { CallBase = true };
+                var integrationService = new Mock<LegacyHttpService>(eventStore.Object, httpClient.Object, settings, logger.Object) { CallBase = true };
                 integrationService.Setup(x => x.CreateReversalRequest(reversal))
                     .Returns(postCharge);
                 integrationService.Setup(x => x.GetErrorMessageFromBadRequestResponse(It.IsAny<ErrorResponse>()))
@@ -365,7 +359,7 @@ namespace OrdersApi.UnitTests.IntegrationServices
                 var fixture = new Fixture();
                 var eventStore = new Mock<AggregateDataSource>(null, null, null);
                 var httpClient = new Mock<IHttpClient>();
-                var settings = fixture.Create<AcquirerApiSettings>();
+                var settings = fixture.Create<LegacyApiSettings>();
                 var charge = fixture.Create<Charge>();
                 charge.OrderDetails = new OrderDetails()
                 {
@@ -380,7 +374,7 @@ namespace OrdersApi.UnitTests.IntegrationServices
                     ReversalDueDate = DateTime.UtcNow
                 };
                 charge.Reversals = new List<Reversal>() { reversal };
-                var logger = new Mock<ILogger<AcquirerApiHttpService>>(); 
+                var logger = new Mock<ILogger<LegacyHttpService>>(); 
                 var postCharge = fixture.Create<CreateReversalRequest>(); 
                 var acquirerAccount = fixture.Create<AcquirerAccount>();
                 var paymentData = new Mock<PaymentMethodData>((IPaymentMethod)acquirerAccount) { CallBase = true };
@@ -390,7 +384,7 @@ namespace OrdersApi.UnitTests.IntegrationServices
                     {
                         StatusCode = HttpStatusCode.Created
                     }));
-                var integrationService = new Mock<AcquirerApiHttpService>(eventStore.Object, httpClient.Object, settings, logger.Object) { CallBase = true };
+                var integrationService = new Mock<LegacyHttpService>(eventStore.Object, httpClient.Object, settings, logger.Object) { CallBase = true };
                 integrationService.Setup(x => x.CreateReversalRequest(reversal))
                     .Returns(postCharge);
 
@@ -410,7 +404,7 @@ namespace OrdersApi.UnitTests.IntegrationServices
                 var fixture = new Fixture();
                 var eventStore = new Mock<AggregateDataSource>(null, null, null);
                 var httpClient = new Mock<IHttpClient>();
-                var settings = fixture.Create<AcquirerApiSettings>();
+                var settings = fixture.Create<LegacyApiSettings>();
                 var charge = fixture.Create<Charge>();
                 charge.OrderDetails = new OrderDetails()
                 {
@@ -425,7 +419,7 @@ namespace OrdersApi.UnitTests.IntegrationServices
                     ReversalDueDate = DateTime.UtcNow
                 };
                 charge.Reversals = new List<Reversal>() { reversal };
-                var logger = new Mock<ILogger<AcquirerApiHttpService>>(); 
+                var logger = new Mock<ILogger<LegacyHttpService>>(); 
                 var exception = new Exception();
                 var postCharge = fixture.Create<CreateReversalRequest>(); 
                 var acquirerAccount = fixture.Create<AcquirerAccount>();
@@ -433,7 +427,7 @@ namespace OrdersApi.UnitTests.IntegrationServices
                 charge.PaymentMethodData = paymentData.Object;
                 httpClient.Setup(x => x.PostAsync(It.IsAny<string>(), postCharge, settings.AuthenticationToken, It.IsAny<string>(), It.IsAny<string>()))
                     .Throws(exception);
-                var integrationService = new Mock<AcquirerApiHttpService>(eventStore.Object, httpClient.Object, settings, logger.Object) { CallBase = true };
+                var integrationService = new Mock<LegacyHttpService>(eventStore.Object, httpClient.Object, settings, logger.Object) { CallBase = true };
                 integrationService.Setup(x => x.CreateReversalRequest(reversal))
                     .Returns(postCharge);
 
@@ -456,13 +450,13 @@ namespace OrdersApi.UnitTests.IntegrationServices
                 var fixture = new Fixture();
                 var eventStore = new Mock<AggregateDataSource>(null, null, null);
                 var httpClient = new Mock<IHttpClient>();
-                var logger = new Mock<ILogger<AcquirerApiHttpService>>();
-                var settings = fixture.Create<AcquirerApiSettings>();
+                var logger = new Mock<ILogger<LegacyHttpService>>();
+                var settings = fixture.Create<LegacyApiSettings>();
                 var charge = fixture.Create<Charge>();
                 var paymentData = new Mock<PaymentMethodData>((IPaymentMethod)new InvalidPaymentMethod()) { CallBase = true };
                 charge.PaymentMethodData = paymentData.Object;
 
-                var integrationService = new Mock<AcquirerApiHttpService>(eventStore.Object, httpClient.Object, settings, logger.Object) { CallBase = true };
+                var integrationService = new Mock<LegacyHttpService>(eventStore.Object, httpClient.Object, settings, logger.Object) { CallBase = true };
                 var result = await integrationService.Object.SendChargeOrder(charge);
 
                 Assert.False(result.Success);
@@ -476,9 +470,9 @@ namespace OrdersApi.UnitTests.IntegrationServices
                 var fixture = new Fixture();
                 var eventStore = new Mock<AggregateDataSource>(null, null, null);
                 var httpClient = new Mock<IHttpClient>();
-                var settings = fixture.Create<AcquirerApiSettings>();
+                var settings = fixture.Create<LegacyApiSettings>();
                 var charge = fixture.Create<Charge>();
-                var logger = new Mock<ILogger<AcquirerApiHttpService>>();
+                var logger = new Mock<ILogger<LegacyHttpService>>();
                 var product = fixture.Create<Product>();
                 var postCharge = fixture.Create<CreateChargeRequest>();
                 eventStore.Setup(x => x.GetByIdAsync<Product>(charge.OrderDetails.ProductInternalKey)).Returns(Task.FromResult(product));
@@ -492,7 +486,7 @@ namespace OrdersApi.UnitTests.IntegrationServices
                         StatusCode = HttpStatusCode.BadRequest,
                         Content = new StringContent(""),
                     }));
-                var integrationService = new Mock<AcquirerApiHttpService>(eventStore.Object, httpClient.Object, settings, logger.Object) { CallBase = true };
+                var integrationService = new Mock<LegacyHttpService>(eventStore.Object, httpClient.Object, settings, logger.Object) { CallBase = true };
                 integrationService.Setup(x => x.CreatePostCharge(charge, It.IsAny<AcquirerAccount>(), product))
                     .Returns(postCharge);
                 integrationService.Setup(x => x.GetErrorMessageFromBadRequestResponse(It.IsAny<ErrorResponse>()))
@@ -514,9 +508,9 @@ namespace OrdersApi.UnitTests.IntegrationServices
                 var fixture = new Fixture();
                 var eventStore = new Mock<AggregateDataSource>(null, null, null);
                 var httpClient = new Mock<IHttpClient>();
-                var settings = fixture.Create<AcquirerApiSettings>();
+                var settings = fixture.Create<LegacyApiSettings>();
                 var charge = fixture.Create<Charge>();
-                var logger = new Mock<ILogger<AcquirerApiHttpService>>();
+                var logger = new Mock<ILogger<LegacyHttpService>>();
                 var product = fixture.Create<Product>();
                 var postCharge = fixture.Create<CreateChargeRequest>();
                 eventStore.Setup(x => x.GetByIdAsync<Product>(charge.OrderDetails.ProductInternalKey)).Returns(Task.FromResult(product));
@@ -528,7 +522,7 @@ namespace OrdersApi.UnitTests.IntegrationServices
                     {
                         StatusCode = HttpStatusCode.Created
                     }));
-                var integrationService = new Mock<AcquirerApiHttpService>(eventStore.Object, httpClient.Object, settings, logger.Object) { CallBase = true };
+                var integrationService = new Mock<LegacyHttpService>(eventStore.Object, httpClient.Object, settings, logger.Object) { CallBase = true };
                 integrationService.Setup(x => x.CreatePostCharge(charge, It.IsAny<AcquirerAccount>(), product))
                     .Returns(postCharge);
 
@@ -548,9 +542,9 @@ namespace OrdersApi.UnitTests.IntegrationServices
                 var fixture = new Fixture();
                 var eventStore = new Mock<AggregateDataSource>(null, null, null);
                 var httpClient = new Mock<IHttpClient>();
-                var settings = fixture.Create<AcquirerApiSettings>();
+                var settings = fixture.Create<LegacyApiSettings>();
                 var charge = fixture.Create<Charge>();
-                var logger = new Mock<ILogger<AcquirerApiHttpService>>();
+                var logger = new Mock<ILogger<LegacyHttpService>>();
                 var product = fixture.Create<Product>();
                 var exception = new Exception();
                 var postCharge = fixture.Create<CreateChargeRequest>();
@@ -560,7 +554,7 @@ namespace OrdersApi.UnitTests.IntegrationServices
                 charge.PaymentMethodData = paymentData.Object;
                 httpClient.Setup(x => x.PostAsync(It.IsAny<string>(), postCharge, settings.AuthenticationToken, It.IsAny<string>(), It.IsAny<string>()))
                     .Throws(exception);
-                var integrationService = new Mock<AcquirerApiHttpService>(eventStore.Object, httpClient.Object, settings, logger.Object) { CallBase = true };
+                var integrationService = new Mock<LegacyHttpService>(eventStore.Object, httpClient.Object, settings, logger.Object) { CallBase = true };
                 integrationService.Setup(x => x.CreatePostCharge(charge, It.IsAny<AcquirerAccount>(), product))
                     .Returns(postCharge);
 

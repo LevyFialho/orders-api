@@ -6,7 +6,7 @@ using OrdersApi.Cqrs.Queries;
 using OrdersApi.Cqrs.Queries.Specifications;
 using OrdersApi.Domain.Model.Projections.ChargeProjections;
 using OrdersApi.Infrastructure.MessageBus.Abstractions;
-using OrdersApi.IntegrationServices.AcquirerApiIntegrationServices;
+using OrdersApi.IntegrationServices.LegacyService;
 using FluentAssertions;
 using Moq;
 using System;
@@ -69,7 +69,7 @@ namespace OrdersApi.UnitTests.IntegrationServices
                                                                    It.IsAny<Expression<Func<ChargeProjection, object>>>(),
                                                                    It.IsAny<int?>())).Returns(getFilteredSortByAsyncMock);
 
-                var service = fixture.Create<Mock<AcquirerSettlementVerificationService>>();
+                var service = fixture.Create<Mock<LegacySettlementVerificationService>>();
 
                 service.Setup(x => x.SendVerifySettlementCommandForCharge(It.IsAny<ChargeProjection>())).Returns(Task.CompletedTask);
 
@@ -144,7 +144,7 @@ namespace OrdersApi.UnitTests.IntegrationServices
                                                                    It.IsAny<Expression<Func<ChargeProjection, object>>>(),
                                                                    It.IsAny<int?>())).Returns(getFilteredSortByAsyncMock);
 
-                var service = fixture.Create<Mock<AcquirerSettlementVerificationService>>();
+                var service = fixture.Create<Mock<LegacySettlementVerificationService>>();
 
                 service.Setup(x => x.SendVerifySettlementCommandForReversal(It.IsAny<ChargeProjection>(), It.IsAny<ReversalProjection>())).Returns(Task.CompletedTask);
                 service.SetupGet(x => x.ChargeDate).Returns(chargeDate);
@@ -180,7 +180,7 @@ namespace OrdersApi.UnitTests.IntegrationServices
                 var commandBus = fixture.Freeze<Mock<ICommandBus>>();
                 commandBus.Setup(bus => bus.Publish(It.IsAny<ICommand>(), It.IsAny<DateTime?>())).Returns(Task.CompletedTask);
 
-                var service = fixture.Create<Mock<AcquirerSettlementVerificationService>>();
+                var service = fixture.Create<Mock<LegacySettlementVerificationService>>();
                 service.SetupGet(x => x.ChargeDate).Returns(chargeDate.Value);
 
                 await service.Object.SendVerifySettlementCommandForCharge(charge);
@@ -216,7 +216,7 @@ namespace OrdersApi.UnitTests.IntegrationServices
                 var commandBus = fixture.Freeze<Mock<ICommandBus>>();
                 commandBus.Setup(bus => bus.Publish(It.IsAny<ICommand>(), It.IsAny<DateTime?>())).Returns(Task.CompletedTask);
 
-                var service = fixture.Create<Mock<AcquirerSettlementVerificationService>>();
+                var service = fixture.Create<Mock<LegacySettlementVerificationService>>();
                 service.SetupGet(x => x.ChargeDate).Returns(chargeDate.Value);
 
                 await service.Object.SendVerifySettlementCommandForReversal(charge, reversal);

@@ -14,19 +14,19 @@ using System.Threading.Tasks;
 using OrdersApi.Domain.Commands.Charge.Reversal;
 using Hangfire;
 
-namespace OrdersApi.IntegrationServices.AcquirerApiIntegrationServices
+namespace OrdersApi.IntegrationServices.LegacyService
 {
 
-    public class AcquirerSettlementVerificationService : ISettlementVerificationService
+    public class LegacySettlementVerificationService : ISettlementVerificationService
     {
         private readonly ICommandBus _commandBus;
         private readonly IQueryableRepository<ChargeProjection> _repository;
         private readonly AcquirerSettlementVerificationSettings _settings;
-        private readonly ILogger<AcquirerSettlementVerificationService> _logger;
+        private readonly ILogger<LegacySettlementVerificationService> _logger;
         private bool _hasChargesToVerify = true;
         private bool _hasReversalsToVerify = true;
 
-        public AcquirerSettlementVerificationService(ICommandBus commandBus, IQueryableRepository<ChargeProjection> repository, IOptions<AcquirerSettlementVerificationSettings> settings, ILogger<AcquirerSettlementVerificationService> logger)
+        public LegacySettlementVerificationService(ICommandBus commandBus, IQueryableRepository<ChargeProjection> repository, IOptions<AcquirerSettlementVerificationSettings> settings, ILogger<LegacySettlementVerificationService> logger)
         {
             this._commandBus = commandBus;
             this._repository = repository;

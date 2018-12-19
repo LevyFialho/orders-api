@@ -23,7 +23,7 @@ namespace OrdersApi.UnitTests.Domain.CommandHandlers
                 var eventStore = new Mock<AggregateDataSource>(null, null, null);
                 var bus = new Mock<IMessageBus>();
                 var logger = new Mock<ILogger<ChargeCommandsHandler>>();
-                var integrationService = new Mock<IAcquirerApiService>();
+                var integrationService = new Mock<ILegacyApiService>();
                 var command = new Mock<CreateAcquirerAccountCharge>(null, null, null, null, null, null);
                 command.Setup(x => x.IsValid()).Returns(false);
                 var handler = new Mock<ChargeCommandsHandler>(eventStore.Object, bus.Object, integrationService.Object, logger.Object){ CallBase = true};
@@ -39,7 +39,7 @@ namespace OrdersApi.UnitTests.Domain.CommandHandlers
             {
                 var eventStore = new Mock<AggregateDataSource>(null, null, null);
                 var bus = new Mock<IMessageBus>();
-                var integrationService = new Mock<IAcquirerApiService>();
+                var integrationService = new Mock<ILegacyApiService>();
                 var logger = new Mock<ILogger<ChargeCommandsHandler>>();
                 var command = new Mock<CreateAcquirerAccountCharge>(null, null, null, null, null, null);
                 command.Setup(x => x.IsValid()).Returns(true);
@@ -60,7 +60,7 @@ namespace OrdersApi.UnitTests.Domain.CommandHandlers
             {
                 var eventStore = new Mock<AggregateDataSource>(null, null, null);
                 var bus = new Mock<IMessageBus>();
-                var integrationService = new Mock<IAcquirerApiService>();
+                var integrationService = new Mock<ILegacyApiService>();
                 var logger = new Mock<ILogger<ChargeCommandsHandler>>();
                 var command = new Mock<SendChargeToAcquirer>(null, null, null, null);
                 command.Setup(x => x.IsValid()).Returns(false);
@@ -79,7 +79,7 @@ namespace OrdersApi.UnitTests.Domain.CommandHandlers
                 var app = new Mock<Charge>();
                 var bus = new Mock<IMessageBus>();
                 var logger = new Mock<ILogger<ChargeCommandsHandler>>();
-                var integrationService = new Mock<IAcquirerApiService>();
+                var integrationService = new Mock<ILegacyApiService>();
                 var command = new Mock<SendChargeToAcquirer>(null, null, null, null);
                 command.Setup(x => x.IsValid()).Returns(true);
                 eventStore.Setup(x => x.GetByIdAsync<Charge>(command.Object.AggregateKey)).Returns(Task.FromResult(app.Object));
@@ -102,7 +102,7 @@ namespace OrdersApi.UnitTests.Domain.CommandHandlers
                 var eventStore = new Mock<AggregateDataSource>(null, null, null);
                 var bus = new Mock<IMessageBus>();
                 var logger = new Mock<ILogger<ChargeCommandsHandler>>();
-                var integrationService = new Mock<IAcquirerApiService>();
+                var integrationService = new Mock<ILegacyApiService>();
                 var command = new Mock<ExpireCharge>(null, null, null, null);
                 command.Setup(x => x.IsValid()).Returns(false);
                 var handler = new Mock<ChargeCommandsHandler>(eventStore.Object, bus.Object, integrationService.Object, logger.Object) { CallBase = true };
@@ -117,7 +117,7 @@ namespace OrdersApi.UnitTests.Domain.CommandHandlers
                 var eventStore = new Mock<AggregateDataSource>(null, null, null);
                 var app = new Mock<Charge>();
                 var bus = new Mock<IMessageBus>();
-                var integrationService = new Mock<IAcquirerApiService>();
+                var integrationService = new Mock<ILegacyApiService>();
                 var logger = new Mock<ILogger<ChargeCommandsHandler>>();
                 var command = new Mock<ExpireCharge>(null, null, null, null);
                 command.Setup(x => x.IsValid()).Returns(true);
@@ -141,7 +141,7 @@ namespace OrdersApi.UnitTests.Domain.CommandHandlers
                 var eventStore = new Mock<AggregateDataSource>(null, null, null);
                 var bus = new Mock<IMessageBus>();
                 var logger = new Mock<ILogger<ChargeCommandsHandler>>();
-                var integrationService = new Mock<IAcquirerApiService>();
+                var integrationService = new Mock<ILegacyApiService>();
                 var command = new Mock<VerifyAcquirerSettlement>(null, null, null, null);
                 command.Setup(x => x.IsValid()).Returns(false);
                 var handler = new Mock<ChargeCommandsHandler>(eventStore.Object, bus.Object, integrationService.Object, logger.Object) { CallBase = true };
@@ -157,7 +157,7 @@ namespace OrdersApi.UnitTests.Domain.CommandHandlers
                 var app = new Mock<Charge>();
                 var logger = new Mock<ILogger<ChargeCommandsHandler>>();
                 var bus = new Mock<IMessageBus>();
-                var integrationService = new Mock<IAcquirerApiService>();
+                var integrationService = new Mock<ILegacyApiService>();
                 var command = new Mock<VerifyAcquirerSettlement>(null, null, null, null);
                 command.Setup(x => x.IsValid()).Returns(true);
                 eventStore.Setup(x => x.GetByIdAsync<Charge>(command.Object.AggregateKey)).Returns(Task.FromResult(app.Object));

@@ -51,7 +51,7 @@ namespace OrdersApi.Domain.Model.ChargeAggregate
         }
 
         public virtual async void SendToAcquirer(string correlationKey, string applicationKey,
-            string sagaProcessKey, IAcquirerApiService integrationService)
+            string sagaProcessKey, ILegacyApiService integrationService)
         {
             if (Status != ChargeStatus.Error)
             {
@@ -79,7 +79,7 @@ namespace OrdersApi.Domain.Model.ChargeAggregate
         }
 
         public virtual async void SendReversalToAcquirer(string correlationKey, string applicationKey,
-            string sagaProcessKey, string reversalKey, IAcquirerApiService integrationService)
+            string sagaProcessKey, string reversalKey, ILegacyApiService integrationService)
         {
             var account = PaymentMethodData?.GetData() as AcquirerAccount;
             var checkIfAlreadySentResult = await integrationService.CheckIfChargeOrderWasSent(account, reversalKey);
@@ -108,7 +108,7 @@ namespace OrdersApi.Domain.Model.ChargeAggregate
         }
 
         public virtual async void VerifyReversalSettlement(string correlationKey, string applicationKey,
-            string sagaProcessKey, string reversalKey, IAcquirerApiService integrationService)
+            string sagaProcessKey, string reversalKey, ILegacyApiService integrationService)
         {
             var reversal = Reversals.FirstOrDefault(x => x.ReversalKey == reversalKey);
             if (reversal != null && (reversal.Status == ChargeStatus.Processed ||
@@ -127,7 +127,7 @@ namespace OrdersApi.Domain.Model.ChargeAggregate
         }
 
         public virtual async void VerifySettlement(string correlationKey, string applicationKey,
-            string sagaProcessKey, IAcquirerApiService integrationService)
+            string sagaProcessKey, ILegacyApiService integrationService)
         {
             if (CanVerifySettlement)
             {

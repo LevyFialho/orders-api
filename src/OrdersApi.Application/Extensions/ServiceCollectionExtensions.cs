@@ -19,7 +19,7 @@ using OrdersApi.Infrastructure.StorageProviders.InMemory;
 using OrdersApi.Infrastructure.StorageProviders.Redis;
 using OrdersApi.Infrastructure.StorageProviders.SqlServer.EventLog.Services;
 using OrdersApi.Infrastructure.StorageProviders.SqlServer.EventStorage;
-using OrdersApi.IntegrationServices.AcquirerApiIntegrationServices;
+using OrdersApi.IntegrationServices.LegacyService;
 using Hangfire;
 using Hangfire.Mongo;
 using Hangfire.Redis;
@@ -324,7 +324,7 @@ namespace OrdersApi.Application.Extensions
                 configuration.GetSection(AcquirerSettlementVerificationSettings.SectionName).Bind(settings);
             });
 
-            services.AddTransient<ISettlementVerificationService, AcquirerSettlementVerificationService>();
+            services.AddTransient<ISettlementVerificationService, LegacySettlementVerificationService>();
         }
     }
 }

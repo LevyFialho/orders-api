@@ -28,7 +28,7 @@ namespace OrdersApi.UnitTests.Domain.CommandHandlers
                 var eventStore = new Mock<AggregateDataSource>(null, null, null);
                 var bus = new Mock<IMessageBus>();
                 var logger = new Mock<ILogger<ReversalCommandsHandler>>();
-                var integrationService = new Mock<IAcquirerApiService>();
+                var integrationService = new Mock<ILegacyApiService>();
                 var command = new Mock<CreateChargeReversal>(null, null, null, null, null);
                 command.Setup(x => x.IsValid()).Returns(false);
                 var handler = new Mock<ReversalCommandsHandler>(eventStore.Object, bus.Object, integrationService.Object, logger.Object){ CallBase = true};
@@ -46,7 +46,7 @@ namespace OrdersApi.UnitTests.Domain.CommandHandlers
                 var bus = new Mock<IMessageBus>();
                 var app = new Mock<Charge>();
                 app.Setup(x => x.CanRevert(It.IsAny<decimal>())).Returns(true); 
-                var integrationService = new Mock<IAcquirerApiService>();
+                var integrationService = new Mock<ILegacyApiService>();
                 var logger = new Mock<ILogger<ReversalCommandsHandler>>();
                 var command = new Mock<CreateChargeReversal>(null, null, null, null, null);
                 eventStore.Setup(x => x.GetByIdAsync<Charge>(command.Object.AggregateKey)).Returns(Task.FromResult(app.Object));
@@ -69,7 +69,7 @@ namespace OrdersApi.UnitTests.Domain.CommandHandlers
                 var bus = new Mock<IMessageBus>();
                 var app = new Mock<Charge>();
                 app.Setup(x => x.CanRevert(It.IsAny<decimal>())).Returns(false);
-                var integrationService = new Mock<IAcquirerApiService>();
+                var integrationService = new Mock<ILegacyApiService>();
                 var logger = new Mock<ILogger<ReversalCommandsHandler>>();
                 var command = new Mock<CreateChargeReversal>(null, null, null, null, null);
                 eventStore.Setup(x => x.GetByIdAsync<Charge>(command.Object.AggregateKey)).Returns(Task.FromResult(app.Object));
@@ -94,7 +94,7 @@ namespace OrdersApi.UnitTests.Domain.CommandHandlers
             {
                 var eventStore = new Mock<AggregateDataSource>(null, null, null);
                 var bus = new Mock<IMessageBus>();
-                var integrationService = new Mock<IAcquirerApiService>();
+                var integrationService = new Mock<ILegacyApiService>();
                 var logger = new Mock<ILogger<ReversalCommandsHandler>>();
                 var command = new Mock<ProcessAcquirerAccountReversal>(null, null, null, null, null);
                 command.Setup(x => x.IsValid()).Returns(false);
@@ -113,7 +113,7 @@ namespace OrdersApi.UnitTests.Domain.CommandHandlers
                 var app = new Mock<Charge>();
                 var bus = new Mock<IMessageBus>();
                 var logger = new Mock<ILogger<ReversalCommandsHandler>>();
-                var integrationService = new Mock<IAcquirerApiService>();
+                var integrationService = new Mock<ILegacyApiService>();
                 var command = new Mock<ProcessAcquirerAccountReversal>(null, null, null, null, null);
                 command.Setup(x => x.IsValid()).Returns(true);
                 eventStore.Setup(x => x.GetByIdAsync<Charge>(command.Object.AggregateKey)).Returns(Task.FromResult(app.Object));
@@ -137,7 +137,7 @@ namespace OrdersApi.UnitTests.Domain.CommandHandlers
                 var eventStore = new Mock<AggregateDataSource>(null, null, null);
                 var bus = new Mock<IMessageBus>();
                 var logger = new Mock<ILogger<ReversalCommandsHandler>>();
-                var integrationService = new Mock<IAcquirerApiService>();
+                var integrationService = new Mock<ILegacyApiService>();
                 var command = new Mock<VerifyReversalSettlement>(null, null, null, null, null);
                 command.Setup(x => x.IsValid()).Returns(false);
                 var handler = new Mock<ReversalCommandsHandler>(eventStore.Object, bus.Object, integrationService.Object, logger.Object) { CallBase = true };
@@ -153,7 +153,7 @@ namespace OrdersApi.UnitTests.Domain.CommandHandlers
                 var app = new Mock<Charge>();
                 var logger = new Mock<ILogger<ReversalCommandsHandler>>();
                 var bus = new Mock<IMessageBus>();
-                var integrationService = new Mock<IAcquirerApiService>();
+                var integrationService = new Mock<ILegacyApiService>();
                 var command = new Mock<VerifyReversalSettlement>(null, null, null, null, null);
                 command.Setup(x => x.IsValid()).Returns(true);
                 eventStore.Setup(x => x.GetByIdAsync<Charge>(command.Object.AggregateKey)).Returns(Task.FromResult(app.Object));

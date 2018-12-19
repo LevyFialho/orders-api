@@ -160,7 +160,7 @@ namespace OrdersApi.UnitTests.Domain.Model
         { 
             var charge = new Mock<Charge>() {CallBase = true};
             charge.Setup(x => x.Status).Returns(ChargeStatus.Error);
-            var integrationService = new Mock<IAcquirerApiService>();
+            var integrationService = new Mock<ILegacyApiService>();
 
             charge.Object.SendToAcquirer(null, null, null, integrationService.Object);
 
@@ -173,7 +173,7 @@ namespace OrdersApi.UnitTests.Domain.Model
         {
             var charge = new Mock<Charge>() { CallBase = true };
             charge.Setup(x => x.Status).Returns(ChargeStatus.Created);
-            var integrationService = new Mock<IAcquirerApiService>();
+            var integrationService = new Mock<ILegacyApiService>();
             integrationService.Setup(x => x.CheckIfChargeOrderWasSent(It.IsAny<AcquirerAccount>(), It.IsAny<string>())).Returns(Task.FromResult(new IntegrationResult<bool>(Result.Error)));
 
             charge.Object.SendToAcquirer(null, null, null, integrationService.Object);
@@ -187,7 +187,7 @@ namespace OrdersApi.UnitTests.Domain.Model
         {
             var charge = new Mock<Charge>() { CallBase = true };
             charge.Setup(x => x.Status).Returns(ChargeStatus.Created);
-            var integrationService = new Mock<IAcquirerApiService>();
+            var integrationService = new Mock<ILegacyApiService>();
             integrationService.Setup(x => x.CheckIfChargeOrderWasSent(It.IsAny<AcquirerAccount>(), It.IsAny<string>())).Returns(Task.FromResult(new IntegrationResult<bool>(Result.Sucess)
             {
                 ReturnedObject = true
@@ -204,7 +204,7 @@ namespace OrdersApi.UnitTests.Domain.Model
         {
             var charge = new Mock<Charge>() { CallBase = true };
             charge.Setup(x => x.Status).Returns(ChargeStatus.Created);
-            var integrationService = new Mock<IAcquirerApiService>();
+            var integrationService = new Mock<ILegacyApiService>();
             integrationService.Setup(x => x.CheckIfChargeOrderWasSent(It.IsAny<AcquirerAccount>(), It.IsAny<string>())).Returns(Task.FromResult(new IntegrationResult<bool>(Result.Sucess)
             {
                 ReturnedObject = false
@@ -222,7 +222,7 @@ namespace OrdersApi.UnitTests.Domain.Model
         {
             var charge = new Mock<Charge>() { CallBase = true };
             charge.Setup(x => x.Status).Returns(ChargeStatus.Created);
-            var integrationService = new Mock<IAcquirerApiService>();
+            var integrationService = new Mock<ILegacyApiService>();
             integrationService.Setup(x => x.CheckIfChargeOrderWasSent(It.IsAny<AcquirerAccount>(), It.IsAny<string>())).Returns(Task.FromResult(new IntegrationResult<bool>(Result.Sucess)
             {
                 ReturnedObject = false
@@ -240,7 +240,7 @@ namespace OrdersApi.UnitTests.Domain.Model
         {
             var charge = new Mock<Charge>() { CallBase = true };
             charge.Setup(x => x.Status).Returns(ChargeStatus.Created);
-            var integrationService = new Mock<IAcquirerApiService>();
+            var integrationService = new Mock<ILegacyApiService>();
             integrationService.Setup(x => x.GetSettlementDate(It.IsAny<AcquirerAccount>(), It.IsAny<string>())).Returns(Task.FromResult(default(IntegrationResult<DateTime?>)));
 
             charge.Object.VerifySettlement(null, null, null, integrationService.Object);
@@ -254,7 +254,7 @@ namespace OrdersApi.UnitTests.Domain.Model
         {
             var charge = new Mock<Charge>() { CallBase = true };
             charge.Setup(x => x.Status).Returns(ChargeStatus.Created);
-            var integrationService = new Mock<IAcquirerApiService>();
+            var integrationService = new Mock<ILegacyApiService>();
             integrationService.Setup(x => x.GetSettlementDate(It.IsAny<AcquirerAccount>(), It.IsAny<string>())).Returns(Task.FromResult(new IntegrationResult<DateTime?>(Result.Sucess)
             {
                 ReturnedObject = null
@@ -271,7 +271,7 @@ namespace OrdersApi.UnitTests.Domain.Model
         {
             var charge = new Mock<Charge>() { CallBase = true };
             charge.Setup(x => x.Status).Returns(ChargeStatus.Created);
-            var integrationService = new Mock<IAcquirerApiService>();
+            var integrationService = new Mock<ILegacyApiService>();
             integrationService.Setup(x => x.GetSettlementDate(It.IsAny<AcquirerAccount>(), It.IsAny<string>())).Returns(Task.FromResult(new IntegrationResult<DateTime?>(Result.Error)));
 
             charge.Object.VerifySettlement(null, null, null, integrationService.Object);
@@ -285,7 +285,7 @@ namespace OrdersApi.UnitTests.Domain.Model
         {
             var charge = new Mock<Charge>() { CallBase = true };
             charge.Setup(x => x.Status).Returns(ChargeStatus.Created);
-            var integrationService = new Mock<IAcquirerApiService>();
+            var integrationService = new Mock<ILegacyApiService>();
             integrationService.Setup(x => x.GetSettlementDate(It.IsAny<AcquirerAccount>(), It.IsAny<string>())).Returns(Task.FromResult(new IntegrationResult<DateTime?>(Result.Sucess)
             {
                 ReturnedObject = DateTime.Today
@@ -480,7 +480,7 @@ namespace OrdersApi.UnitTests.Domain.Model
             {
                 var charge = new Mock<Charge>() { CallBase = true };
                 charge.Setup(x => x.Status).Returns(ChargeStatus.Created);
-                var integrationService = new Mock<IAcquirerApiService>();
+                var integrationService = new Mock<ILegacyApiService>();
                 integrationService.Setup(x => x.CheckIfChargeOrderWasSent(It.IsAny<AcquirerAccount>(), It.IsAny<string>())).Returns(Task.FromResult(new IntegrationResult<bool>(Result.Sucess)
                 {
                     ReturnedObject = true
@@ -497,7 +497,7 @@ namespace OrdersApi.UnitTests.Domain.Model
             {
                 var charge = new Mock<Charge>() { CallBase = true };
                 charge.Setup(x => x.Status).Returns(ChargeStatus.Created);
-                var integrationService = new Mock<IAcquirerApiService>();
+                var integrationService = new Mock<ILegacyApiService>();
                 integrationService.Setup(x => x.CheckIfChargeOrderWasSent(It.IsAny<AcquirerAccount>(), It.IsAny<string>())).Returns(Task.FromResult(new IntegrationResult<bool>(Result.Sucess)
                 {
                     ReturnedObject = false
@@ -515,7 +515,7 @@ namespace OrdersApi.UnitTests.Domain.Model
             {
                 var charge = new Mock<Charge>() { CallBase = true };
                 charge.Setup(x => x.Status).Returns(ChargeStatus.Created);
-                var integrationService = new Mock<IAcquirerApiService>();
+                var integrationService = new Mock<ILegacyApiService>();
                 integrationService.Setup(x => x.CheckIfChargeOrderWasSent(It.IsAny<AcquirerAccount>(), It.IsAny<string>())).Returns(Task.FromResult(new IntegrationResult<bool>(Result.Sucess)
                 {
                     ReturnedObject = false
@@ -545,7 +545,7 @@ namespace OrdersApi.UnitTests.Domain.Model
                         Status = ChargeStatus.Processed
                     }
                 });
-                var integrationService = new Mock<IAcquirerApiService>();
+                var integrationService = new Mock<ILegacyApiService>();
                 integrationService.Setup(x => x.GetSettlementDate(It.IsAny<AcquirerAccount>(), It.IsAny<string>())).Returns(Task.FromResult(default(IntegrationResult<DateTime?>)));
 
                 charge.Object.VerifyReversalSettlement(null, null, null, "XPTO", integrationService.Object);
@@ -567,7 +567,7 @@ namespace OrdersApi.UnitTests.Domain.Model
                         Status = ChargeStatus.Processed
                     }
                 });
-                var integrationService = new Mock<IAcquirerApiService>();
+                var integrationService = new Mock<ILegacyApiService>();
                 integrationService.Setup(x => x.GetSettlementDate(It.IsAny<AcquirerAccount>(), It.IsAny<string>())).Returns(Task.FromResult(new IntegrationResult<DateTime?>(Result.Sucess)
                 {
                     ReturnedObject = null
@@ -592,7 +592,7 @@ namespace OrdersApi.UnitTests.Domain.Model
                         Status = ChargeStatus.Processed
                     }
                 });
-                var integrationService = new Mock<IAcquirerApiService>();
+                var integrationService = new Mock<ILegacyApiService>();
                 integrationService.Setup(x => x.GetSettlementDate(It.IsAny<AcquirerAccount>(), It.IsAny<string>())).Returns(Task.FromResult(new IntegrationResult<DateTime?>(Result.Error)));
 
                 charge.Object.VerifyReversalSettlement(null, null, null, "XPTO", integrationService.Object);
@@ -614,7 +614,7 @@ namespace OrdersApi.UnitTests.Domain.Model
                         Status = ChargeStatus.Processed
                     }
                 });
-                var integrationService = new Mock<IAcquirerApiService>();
+                var integrationService = new Mock<ILegacyApiService>();
                 integrationService.Setup(x => x.GetSettlementDate(It.IsAny<AcquirerAccount>(), It.IsAny<string>())).Returns(Task.FromResult(new IntegrationResult<DateTime?>(Result.Sucess)
                 {
                     ReturnedObject = DateTime.Today

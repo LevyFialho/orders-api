@@ -17,10 +17,10 @@ namespace OrdersApi.Domain.CommandHandlers
     public class ChargeCommandsHandler : CommandHandler, IRequestHandler<CreateAcquirerAccountCharge>,
         IRequestHandler<SendChargeToAcquirer>, IRequestHandler<ExpireCharge>, IRequestHandler<VerifyAcquirerSettlement>
     {
-        protected readonly IAcquirerApiService AcquirerApiService;
+        protected readonly ILegacyApiService AcquirerApiService;
         protected readonly ILogger<ChargeCommandsHandler> Logger;
 
-        public ChargeCommandsHandler(AggregateDataSource repository, IMessageBus bus, IAcquirerApiService acquirerApiService, ILogger<ChargeCommandsHandler> logger) : base(repository, bus)
+        public ChargeCommandsHandler(AggregateDataSource repository, IMessageBus bus, ILegacyApiService acquirerApiService, ILogger<ChargeCommandsHandler> logger) : base(repository, bus)
         {
             AcquirerApiService = acquirerApiService;
             Logger = logger;

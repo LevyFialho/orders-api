@@ -2,32 +2,29 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
-using OrdersApi.Cqrs.Extensions;
+using Microsoft.Extensions.Logging;
 using OrdersApi.Cqrs.Models;
 using OrdersApi.Cqrs.Repository;
 using OrdersApi.Domain.IntegrationServices;
 using OrdersApi.Domain.Model.ChargeAggregate;
 using OrdersApi.Domain.Model.ProductAggregate;
 using OrdersApi.Infrastructure.Resilience;
-using OrdersApi.IntegrationServices.AcquirerApiIntegrationServices.Contracts;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using RabbitMQ.Client;
+using OrdersApi.IntegrationServices.LegacyService;
+using OrdersApi.IntegrationServices.LegacyService.Contracts;
 using Charge = OrdersApi.Domain.Model.ChargeAggregate.Charge;
 #pragma warning disable S1075
 
-namespace OrdersApi.IntegrationServices.AcquirerApiIntegrationServices
+namespace OrdersApi.IntegrationServices.LegacyService
 {
-    public class AcquirerApiHttpService : IAcquirerApiService
+    public class LegacyHttpService : ILegacyApiService
     {
         protected readonly IHttpClient Client;
         protected readonly AggregateDataSource Repository;
-        protected readonly AcquirerApiSettings Settings;
-        protected readonly ILogger<AcquirerApiHttpService> Logger;
+        protected readonly LegacyApiSettings Settings;
+        protected readonly ILogger<LegacyHttpService> Logger;
 
-        public AcquirerApiHttpService(AggregateDataSource repository, IHttpClient client, AcquirerApiSettings settings, ILogger<AcquirerApiHttpService> logger)
+        public LegacyHttpService(AggregateDataSource repository, IHttpClient client, LegacyApiSettings settings, ILogger<LegacyHttpService> logger)
         {
             Client = client;
             Settings = settings;
@@ -223,13 +220,7 @@ namespace OrdersApi.IntegrationServices.AcquirerApiIntegrationServices
                 },
                 ChargeType = Settings.DefaultChargeTypeCode,
                 AccountType = accountTypeId
-            };
-
-            if (product?.ExternalKey == Settings.PosRentKey)
-                post.ChargeType = Settings.PosRentChargeTypeCode;
-
-            if (product?.ExternalKey == Settings.ExternalPosRentKey)
-                post.ChargeType = Settings.ExternalPosRentChargeTypeCode;
+            }; 
 
             return post;
         }

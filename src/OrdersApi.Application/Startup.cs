@@ -45,7 +45,7 @@ using OrdersApi.Domain.Model.Projections.ChargeProjections;
 using OrdersApi.Infrastructure.MessageBus.Abstractions;
 using OrdersApi.Infrastructure.StorageProviders.DocumentDb;
 using OrdersApi.Infrastructure.StorageProviders.RavenDb;
-using OrdersApi.IntegrationServices.AcquirerApiIntegrationServices; 
+using OrdersApi.IntegrationServices.LegacyService; 
 using Microsoft.ApplicationInsights.SnapshotCollector;
 using Microsoft.Extensions.Options;
 using Microsoft.ApplicationInsights.AspNetCore; 
@@ -53,6 +53,7 @@ using Microsoft.ApplicationInsights.AspNetCore.Logging;
 using Microsoft.ApplicationInsights.Extensibility;
 using OrdersApi.Authentication.Extensions;
 using OrdersApi.Healthcheck.Extensions;
+using OrdersApi.IntegrationServices.LegacyService;
 
 
 namespace OrdersApi.Application
@@ -221,15 +222,15 @@ namespace OrdersApi.Application
 
         private void ConfigureIntegrationServices(IServiceCollection services)
         {
-            var settings = Configuration.GetSection(AcquirerApiSettings.SectionName).Get<AcquirerApiSettings>();
+            var settings = Configuration.GetSection(LegacyApiSettings.SectionName).Get<LegacyApiSettings>();
             services.AddSingleton(settings);
             if (settings.UseMockApi)
             {
-                services.AddScoped<IAcquirerApiService, AcquirerApiMock>();
+                services.AddScoped<ILegacyApiService, LegacyApiMock>();
             }
             else
             {
-                services.AddScoped<IAcquirerApiService, AcquirerApiHttpService>();
+                services.AddScoped<ILegacyApiService, LegacyHttpService>();
             }
         }
 

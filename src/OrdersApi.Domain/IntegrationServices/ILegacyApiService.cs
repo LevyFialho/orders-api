@@ -7,7 +7,7 @@ using OrdersApi.Domain.Model.ChargeAggregate;
 
 namespace OrdersApi.Domain.IntegrationServices
 {
-    public interface IAcquirerApiService
+    public interface ILegacyApiService
     {
         Task<IntegrationResult<bool>> CheckIfChargeOrderWasSent(AcquirerAccount account, string orderId);
         

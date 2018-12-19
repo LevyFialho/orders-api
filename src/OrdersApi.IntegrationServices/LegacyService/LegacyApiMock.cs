@@ -7,10 +7,10 @@ using OrdersApi.Cqrs.Models;
 using OrdersApi.Domain.IntegrationServices;
 using OrdersApi.Domain.Model.ChargeAggregate;
 
-namespace OrdersApi.IntegrationServices.AcquirerApiIntegrationServices
+namespace OrdersApi.IntegrationServices.LegacyService
 {
     [ExcludeFromCodeCoverage]
-    public class AcquirerApiMock: IAcquirerApiService
+    public class LegacyApiMock: ILegacyApiService
     {
         public Task<IntegrationResult<bool>> CheckIfChargeOrderWasSent(AcquirerAccount account, string orderId)
         {

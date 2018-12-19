@@ -14,7 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OrdersApi.Domain.IntegrationServices;
-using OrdersApi.IntegrationServices.AcquirerApiIntegrationServices;
+using OrdersApi.IntegrationServices.LegacyService;
 using Microsoft.Extensions.Logging;
 
 namespace OrdersApi.Application.Extensions

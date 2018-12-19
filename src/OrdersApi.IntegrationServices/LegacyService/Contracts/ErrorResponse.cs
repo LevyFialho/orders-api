@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace OrdersApi.IntegrationServices.AcquirerApiIntegrationServices.Contracts
+namespace OrdersApi.IntegrationServices.LegacyService.Contracts
 {
     [ExcludeFromCodeCoverage]
     public class ErrorResponse
