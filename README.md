@@ -131,13 +131,8 @@
 | UseMockApi | bool  | Mock feature flag |
    
 ### Build Server ###
-* We are using VSTS as the build server tool for this application. 
-* The workflows can be found at: https://stonepagamentos.visualstudio.com/Cobran%C3%A7a/Cobran%C3%A7a%20Team/_build 
-	
-### Interfaces and Integrations ###
-* Acquirer API
-* Cerberus
-* Global Identity Manager
+* you should use VSTS as the build server tool for this application.  
+ 
 
 ### Load Tests ###
 
@@ -152,9 +147,5 @@ Ex.:
 
 ```cmd
  jmeter.bat -Jsecret=ZDAzMmRhYmELTgwN2QtOGIyN2QzOTE2OGYz -Jhostname=localhost -Jport=32805 -Jclientkey=782c7053-0972-470c-952a-5498389f445e
-```
-
-
-### Who do I talk to? ###
-* Financeiro - Cobrança (financeiroti.cobranca@stone.com.br)
+``` 
  
