@@ -1,0 +1,102 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environment_suffix": {
+      "defaultValue": null,
+      "type": "string"
+    },
+    "primary_location": {
+      "defaultValue": "[resourceGroup().location]",
+      "type": "string"
+    },
+    "secondary_location": {
+      "defaultValue": "West US 2",
+      "type": "string"
+    },
+    "servicebus_namespace_name": {
+      "defaultValue": "financial-charging",
+      "type": "string"
+    },
+    "servicebus_rootkey_name": {
+      "defaultValue": "RootManageSharedAccessKey",
+      "type": "string"
+    }
+  },
+  "variables": {
+    "servicebus_secondary_namespace_name": "[concat(parameters('servicebus_namespace_name'), '-', parameters('environment_suffix'), '-2')]",
+    "servicebus_primary_namespace_name": "[concat(parameters('servicebus_namespace_name'), '-', parameters('environment_suffix'), '-1')]",
+    "servicebus_drconfig_name": "[concat(parameters('servicebus_namespace_name'), '-', parameters('environment_suffix'))]"
+  },
+  "resources": [ 
+    {
+      "comments": "Create secondary servicebus namespace",
+      "type": "Microsoft.ServiceBus/namespaces",
+      "sku": {
+        "name": "Premium",
+        "tier": "Premium",
+        "capacity": 2
+      },
+      "name": "[variables('servicebus_secondary_namespace_name')]",
+      "apiVersion": "2017-04-01",
+      "location": "[parameters('secondary_location')]",
+      "tags": {},
+      "properties": {
+        "serviceBusEndpoint": "[concat('https://', variables('servicebus_secondary_namespace_name'),'.servicebus.windows.net:443/')]"
+      },
+      "dependsOn": []
+    },
+    {
+      "comments": "Create primary servicebus namespace",
+      "type": "Microsoft.ServiceBus/namespaces",
+      "sku": {
+        "name": "Premium",
+        "tier": "Premium",
+        "capacity": 2
+      },
+      "name": "[variables('servicebus_primary_namespace_name')]",
+      "apiVersion": "2017-04-01",
+      "location": "[parameters('primary_location')]",
+      "tags": {},
+      "properties": {
+        "serviceBusEndpoint": "[concat('https://', variables('servicebus_primary_namespace_name'),'.servicebus.windows.net:443/')]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ServiceBus/namespaces', variables('servicebus_secondary_namespace_name'))]"
+      ],
+      "resources": [
+        {
+          "comments": "Setup Geolocation",
+          "type": "disasterRecoveryConfigs",
+          "name": "[variables('servicebus_drconfig_name')]",
+          "apiVersion": "2017-04-01",
+          "properties": {
+            "partnerNamespace": "[resourceId('Microsoft.ServiceBus/namespaces', variables('servicebus_secondary_namespace_name'))]"
+          },
+          "dependsOn": [
+            "[resourceId('Microsoft.ServiceBus/namespaces', variables('servicebus_primary_namespace_name'))]"
+          ]
+
+        }
+      ]
+    },
+    {
+      "comments": "Setup primary servicebus authorization rules",
+      "type": "Microsoft.ServiceBus/namespaces/AuthorizationRules",
+      "name": "[concat(variables('servicebus_primary_namespace_name'), '/', parameters('servicebus_rootkey_name'))]",
+      "apiVersion": "2017-04-01",
+      "location": "[parameters('primary_location')]",
+      "properties": {
+        "rights": [
+          "Listen",
+          "Manage",
+          "Send"
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ServiceBus/namespaces', variables('servicebus_primary_namespace_name'))]",
+        "[resourceId('Microsoft.ServiceBus/namespaces/disasterRecoveryConfigs', variables('servicebus_primary_namespace_name'), variables('servicebus_drconfig_name'))]"
+      ]
+    }
+  ]
+}

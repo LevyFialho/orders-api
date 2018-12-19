@@ -1,0 +1,146 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environment_suffix": {
+      "defaultValue": null,
+      "type": "string"
+    },
+    "primary_location": {
+      "defaultValue": "[resourceGroup().location]",
+      "type": "string"
+    },
+    "servicebus_namespace_name": {
+      "defaultValue": "financial-charging",
+      "type": "string"
+    },
+    "servicebus_topic_name": {
+      "defaultValue": "financial-charging",
+      "type": "string"
+    },
+    "servicebus_rootkey_name": {
+      "defaultValue": "RootManageSharedAccessKey",
+      "type": "string"
+    },
+    "servicebus_subscriptions_financial_charging_api_name": {
+      "defaultValue": "financial-charging-api",
+      "type": "string"
+    },
+    "topic_authorizationRule_name": {
+      "defaultValue": "financial-charging-api",
+      "type": "string"
+    },
+    "financial_charging_api_queue_name": {
+      "defaultValue": "financial-charging-api-queue",
+      "type": "string"
+    },
+    "authorizationRules_financial_charging_api_queue_sas_name": {
+      "defaultValue": "financial-charging-api-queue-sas",
+      "type": "string"
+    }
+  },
+  "variables": {
+    "servicebus_primary_namespace_name": "[concat(parameters('servicebus_namespace_name'), '-', parameters('environment_suffix'), '-1')]",
+    "servicebus_drconfig_name": "[concat(parameters('servicebus_namespace_name'), '-', parameters('environment_suffix'))]"
+  },
+  "resources": [
+    {
+      "comments": "Setup servicebus topic",
+      "type": "Microsoft.ServiceBus/namespaces/topics",
+      "name": "[concat(variables('servicebus_primary_namespace_name'), '/', parameters('servicebus_topic_name'))]",
+      "apiVersion": "2017-04-01",
+      "location": "[parameters('primary_location')]",
+      "properties": {
+        "defaultMessageTimeToLive": "P7D",
+        "maxSizeInMegabytes": 5120,
+        "requiresDuplicateDetection": false,
+        "duplicateDetectionHistoryTimeWindow": "PT10M",
+        "enableBatchedOperations": true,
+        "status": "Active",
+        "supportOrdering": true,
+        "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S",
+        "enablePartitioning": false,
+        "enableExpress": false
+      }
+    },
+    {
+      "comments": "Create topic authorization rule.",
+      "type": "Microsoft.ServiceBus/namespaces/topics/authorizationRules",
+      "name": "[concat(variables('servicebus_primary_namespace_name'), '/', parameters('servicebus_topic_name'), '/', parameters('topic_authorizationRule_name'))]",
+      "apiVersion": "2017-04-01",
+      "location": "[parameters('primary_location')]",
+      "scale": null,
+      "properties": {
+        "rights": [
+          "Manage",
+          "Listen",
+          "Send"
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ServiceBus/namespaces/topics', variables('servicebus_primary_namespace_name'), parameters('servicebus_topic_name'))]"
+      ]
+    },
+    //
+    //Service-Bus subscriptions
+    //
+    {
+      "comments": "Setup servicebus topic subscription",
+      "type": "Microsoft.ServiceBus/namespaces/topics/subscriptions",
+      "name": "[concat(variables('servicebus_primary_namespace_name'), '/', parameters('servicebus_topic_name'), '/', parameters('servicebus_subscriptions_financial_charging_api_name'))]",
+      "apiVersion": "2017-04-01",
+      "location": "[parameters('primary_location')]",
+      "properties": {
+        "lockDuration": "PT5M",
+        "requiresSession": false,
+        "defaultMessageTimeToLive": "P7D",
+        "deadLetteringOnMessageExpiration": true,
+        "deadLetteringOnFilterEvaluationExceptions": true,
+        "maxDeliveryCount": 10,
+        "status": "Active",
+        "enableBatchedOperations": false,
+        "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ServiceBus/namespaces/topics', variables('servicebus_primary_namespace_name'), parameters('servicebus_topic_name'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.ServiceBus/namespaces/queues",
+      "name": "[concat(variables('servicebus_primary_namespace_name'), '/', parameters('financial_charging_api_queue_name'))]",
+      "apiVersion": "2017-04-01",
+      "location": "[parameters('primary_location')]",
+      "scale": null,
+      "properties": {
+        "lockDuration": "PT5M",
+        "maxSizeInMegabytes": 81920,
+        "requiresDuplicateDetection": true,
+        "requiresSession": false,
+        "defaultMessageTimeToLive": "P365D",
+        "deadLetteringOnMessageExpiration": true,
+        "enableBatchedOperations": true,
+        "duplicateDetectionHistoryTimeWindow": "PT5M",
+        "maxDeliveryCount": 10,
+        "enablePartitioning": true,
+        "enableExpress": false
+      } 
+    },
+    {
+      "type": "Microsoft.ServiceBus/namespaces/queues/authorizationRules",
+      "name": "[concat(variables('servicebus_primary_namespace_name'), '/', parameters('financial_charging_api_queue_name'), '/', parameters('authorizationRules_financial_charging_api_queue_sas_name'))]",
+      "apiVersion": "2017-04-01",
+      "location": "[parameters('primary_location')]",
+      "scale": null,
+      "properties": {
+        "rights": [
+          "Manage",
+          "Listen",
+          "Send"
+        ]
+      },
+      "dependsOn": [ 
+        "[resourceId('Microsoft.ServiceBus/namespaces/queues', variables('servicebus_primary_namespace_name'), parameters('financial_charging_api_queue_name'))]"
+      ]
+    }
+  ]
+}

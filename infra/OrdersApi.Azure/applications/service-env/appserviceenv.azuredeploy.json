@@ -1,0 +1,774 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environment_suffix": {
+      "defaultValue": null,
+      "type": "string"
+    },
+    "primary_location": {
+      "defaultValue": "[resourceGroup().location]",
+      "type": "string"
+    },
+    "secondary_location": {
+      "defaultValue": "West US 2",
+      "type": "string"
+    }, 
+    "serverfarms_name": {
+      "defaultValue": "financialchargingapps",
+      "type": "string"
+    },
+    "hostingEnvironments_name": {
+      "defaultValue": "financial-charging-appenv",
+      "type": "string"
+    },
+    "virtualNetworks_vnet_name": {
+      "defaultValue": "financial-charging-vnet",
+      "type": "string"
+    }, 
+    "route_Table_name": {
+      "defaultValue": "financial-charging-appenv-routetable",
+      "type": "string"
+    },
+    "autoscalesettings_setting_name": {
+      "defaultValue": "financialchargingapiplan-setting",
+      "type": "string"
+    },
+    "networkSecurityGroups_NSG_name": {
+      "defaultValue": "financial-charging-appenv-NSG",
+      "type": "string"
+    },
+    "multiRolePools_default_name": {
+      "defaultValue": "default",
+      "type": "string"
+    }
+  },
+  "variables": {
+    "serverfarms_name": "[concat(parameters('serverfarms_name'), parameters('environment_suffix'))]",
+    "hostingEnvironments_name": "[concat(parameters('hostingEnvironments_name'), '-', parameters('environment_suffix'))]",
+    "virtualNetworks_vnet_name": "[concat(parameters('virtualNetworks_vnet_name'), '-', parameters('environment_suffix'))]",
+    "route_Table_name": "[concat(parameters('route_Table_name'), '-', parameters('environment_suffix'))]",
+    "autoscalesettings_setting_name": "[concat(parameters('autoscalesettings_setting_name'), '-', parameters('environment_suffix'))]",
+    "networkSecurityGroups_NSG_name": "[concat(parameters('networkSecurityGroups_NSG_name'), '-', parameters('environment_suffix'))]",
+    "autoscalesettings_serverFarmUri": "[concat(resourceGroup().id, '/providers/Microsoft.Web/serverFarms/', variables('serverfarms_name'))]", 
+    "defaultRouteName": "[concat(variables('hostingEnvironments_name'), '-route')]"
+  },
+  "resources": [ 
+    {
+      "comments": "Create auto scaling profile",
+      "type": "microsoft.insights/autoscalesettings",
+      "name": "[variables('autoscalesettings_setting_name')]",
+      "apiVersion": "2014-04-01",
+      "location": "[parameters('primary_location')]",
+      "tags": {},
+      "scale": null,
+      "properties": {
+        "profiles": [
+          {
+            "name": "DefaultAutoscaleProfile",
+            "capacity": {
+              "minimum": "2",
+              "maximum": "5",
+              "default": "2"
+            },
+            "rules": [
+              {
+                "metricTrigger": {
+                  "metricName": "CpuPercentage",
+                  "metricNamespace": "",
+                  "metricResourceUri": "[variables('autoscalesettings_serverFarmUri')]",
+                  "timeGrain": "PT5M",
+                  "statistic": "Average",
+                  "timeWindow": "PT10M",
+                  "timeAggregation": "Average",
+                  "operator": "GreaterThan",
+                  "threshold": 60
+                },
+                "scaleAction": {
+                  "direction": "Increase",
+                  "type": "PercentChangeCount",
+                  "value": "20",
+                  "cooldown": "PT10M"
+                }
+              },
+              {
+                "metricTrigger": {
+                  "metricName": "CpuPercentage",
+                  "metricNamespace": "",
+                  "metricResourceUri": "[variables('autoscalesettings_serverFarmUri')]",
+                  "timeGrain": "PT5M",
+                  "statistic": "Average",
+                  "timeWindow": "PT10M",
+                  "timeAggregation": "Average",
+                  "operator": "LessThan",
+                  "threshold": 20
+                },
+                "scaleAction": {
+                  "direction": "Decrease",
+                  "type": "PercentChangeCount",
+                  "value": "10",
+                  "cooldown": "PT10M"
+                }
+              }
+            ]
+          }
+        ],
+        "enabled": false,
+        "name": "[variables('autoscalesettings_setting_name')]",
+        "targetResourceUri": "[variables('autoscalesettings_serverFarmUri')]"
+      },
+      "dependsOn": []
+    },
+    {
+      "comments": "Create network security group",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "name": "[variables('networkSecurityGroups_NSG_name')]",
+      "apiVersion": "2018-02-01",
+      "location": "[parameters('primary_location')]",
+      "tags": {
+        "displayName": "NSG - Subnet"
+      },
+      "scale": null,
+      "properties": {
+        "provisioningState": "Succeeded",
+        //"resourceGuid": "a6d21d9f-bb03-4c1d-a369-15dc70412743",
+        "securityRules": [
+          {
+            "name": "Inbound-management",
+            //"etag": "W/\"e6cf14f9-fb84-4f31-b62c-28b6624aeb7a\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Used to manage ASE from public VIP",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "454-455",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 100,
+              "direction": "Inbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          },
+          {
+            "name": "ASE-internal-inbound",
+            //"etag": "W/\"e6cf14f9-fb84-4f31-b62c-28b6624aeb7a\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "ASE-internal-inbound",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "192.168.250.0/24",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 110,
+              "direction": "Inbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          },
+          {
+            "name": "Inbound-HTTP",
+            //"etag": "W/\"e6cf14f9-fb84-4f31-b62c-28b6624aeb7a\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Allow HTTP",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "80",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 120,
+              "direction": "Inbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          },
+          {
+            "name": "Inbount-HTTPS",
+            //"etag": "W/\"e6cf14f9-fb84-4f31-b62c-28b6624aeb7a\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Allow HTTPS",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "443",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 130,
+              "direction": "Inbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          },
+          {
+            "name": "Inbound-FTP",
+            //"etag": "W/\"e6cf14f9-fb84-4f31-b62c-28b6624aeb7a\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Allow FTP over port 21",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "21",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 140,
+              "direction": "Inbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          },
+          {
+            "name": "Inbound-FTPS",
+            //"etag": "W/\"e6cf14f9-fb84-4f31-b62c-28b6624aeb7a\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Allow FTPS",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "990",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 150,
+              "direction": "Inbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          },
+          {
+            "name": "Inbound-FTP-Data",
+            //"etag": "W/\"e6cf14f9-fb84-4f31-b62c-28b6624aeb7a\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "RDP",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "10001-10020",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 160,
+              "direction": "Inbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          },
+          {
+            "name": "Inbound-Remote-Debugging",
+            //"etag": "W/\"e6cf14f9-fb84-4f31-b62c-28b6624aeb7a\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Visual Studio remote debugging",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "4016-4022",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 170,
+              "direction": "Inbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          },
+          {
+            "name": "Outbound-443",
+            //"etag": "W/\"e6cf14f9-fb84-4f31-b62c-28b6624aeb7a\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Azure Storage blob",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "443",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 100,
+              "direction": "Outbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          },
+          {
+            "name": "Outbound-SMB",
+            //"etag": "W/\"e6cf14f9-fb84-4f31-b62c-28b6624aeb7a\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Azure Storage queue",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "445",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 110,
+              "direction": "Outbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          },
+          {
+            "name": "Outbound-DB",
+            //"etag": "W/\"e6cf14f9-fb84-4f31-b62c-28b6624aeb7a\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Database",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "1433",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 120,
+              "direction": "Outbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          },
+          {
+            "name": "Outbound-DB2",
+            //"etag": "W/\"e6cf14f9-fb84-4f31-b62c-28b6624aeb7a\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Database 2",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "11000-11999",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 130,
+              "direction": "Outbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          },
+          {
+            "name": "Outbound-DB3",
+            //"etag": "W/\"e6cf14f9-fb84-4f31-b62c-28b6624aeb7a\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Database 3",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "14000-14999",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 140,
+              "direction": "Outbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          },
+          {
+            "name": "Outbound-DNS",
+            //"etag": "W/\"e6cf14f9-fb84-4f31-b62c-28b6624aeb7a\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "DNS",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "53",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 150,
+              "direction": "Outbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          },
+          {
+            "name": "ASE-internal-outbound",
+            //"etag": "W/\"e6cf14f9-fb84-4f31-b62c-28b6624aeb7a\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Azure Storage queue",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "192.168.250.0/24",
+              "access": "Allow",
+              "priority": 160,
+              "direction": "Outbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          },
+          {
+            "name": "Outbound-80",
+            //"etag": "W/\"e6cf14f9-fb84-4f31-b62c-28b6624aeb7a\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Outbound 80",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "80",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 170,
+              "direction": "Outbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          },
+          {
+            "name": "ASE-to-VNET",
+            //"etag": "W/\"e6cf14f9-fb84-4f31-b62c-28b6624aeb7a\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "ASE to VNET",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "192.168.250.0/23",
+              "access": "Allow",
+              "priority": 180,
+              "direction": "Outbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          }
+        ],
+        "defaultSecurityRules": [
+          {
+            "name": "AllowVnetInBound",
+            //"etag": "W/\"e6cf14f9-fb84-4f31-b62c-28b6624aeb7a\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Allow inbound traffic from all VMs in VNET",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "VirtualNetwork",
+              "destinationAddressPrefix": "VirtualNetwork",
+              "access": "Allow",
+              "priority": 65000,
+              "direction": "Inbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          },
+          {
+            "name": "AllowAzureLoadBalancerInBound",
+            //"etag": "W/\"e6cf14f9-fb84-4f31-b62c-28b6624aeb7a\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Allow inbound traffic from azure load balancer",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "AzureLoadBalancer",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 65001,
+              "direction": "Inbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          },
+          {
+            "name": "DenyAllInBound",
+            //"etag": "W/\"e6cf14f9-fb84-4f31-b62c-28b6624aeb7a\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Deny all inbound traffic",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Deny",
+              "priority": 65500,
+              "direction": "Inbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          },
+          {
+            "name": "AllowVnetOutBound",
+            //"etag": "W/\"e6cf14f9-fb84-4f31-b62c-28b6624aeb7a\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Allow outbound traffic from all VMs to all VMs in VNET",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "VirtualNetwork",
+              "destinationAddressPrefix": "VirtualNetwork",
+              "access": "Allow",
+              "priority": 65000,
+              "direction": "Outbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          },
+          {
+            "name": "AllowInternetOutBound",
+            //"etag": "W/\"e6cf14f9-fb84-4f31-b62c-28b6624aeb7a\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Allow outbound traffic from all VMs to Internet",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "Internet",
+              "access": "Allow",
+              "priority": 65001,
+              "direction": "Outbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          },
+          {
+            "name": "DenyAllOutBound",
+            //"etag": "W/\"e6cf14f9-fb84-4f31-b62c-28b6624aeb7a\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Deny all outbound traffic",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Deny",
+              "priority": 65500,
+              "direction": "Outbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          }
+        ]
+      },
+      "dependsOn": []
+    },
+    {
+      "comments": "Create Routes table",
+      "type": "Microsoft.Network/routeTables",
+      "name": "[variables('route_Table_name')]",
+      "apiVersion": "2018-02-01",
+      "location": "[parameters('primary_location')]",
+      "tags": {
+        "displayName": "UDR - Subnet"
+      },
+      "scale": null,
+      "properties": {
+        "disableBgpRoutePropagation": false,
+        "routes": [
+          {
+            "name": "[variables('defaultRouteName')]",
+           // "etag": "W/\"77f534c4-36fa-4c23-af5f-a7b1eda241ca\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "addressPrefix": "0.0.0.0/0",
+              "nextHopType": "Internet"
+            }
+          }
+        ]
+      },
+      "dependsOn": []
+    },
+    {
+      "comments": "Create Virtual Network",
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[variables('virtualNetworks_vnet_name')]",
+      "apiVersion": "2018-02-01",
+      "location": "[parameters('primary_location')]",
+      "scale": null,
+      "properties": {
+        //"provisioningState": "Succeeded",
+        //"resourceGuid": "ca9493d3-029e-431b-845d-bb51959ced8d",
+        "addressSpace": {
+          "addressPrefixes": [
+            "192.168.250.0/23"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[concat(variables('hostingEnvironments_name'), '-subnet')]",
+            //"etag": "W/\"9baf2c17-5e62-47ba-a245-5900cc5ed262\"",
+            "properties": {
+              //"provisioningState": "Succeeded",
+              "addressPrefix": "192.168.250.0/24",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroups_NSG_name'))]"
+              },
+              "routeTable": {
+                "id": "[resourceId('Microsoft.Network/routeTables', variables('route_Table_name'))]"
+              },
+              "resourceNavigationLinks": [
+                {
+                  "name": "MicrosoftWeb_HostingEnvironments_financial-charging-appenv-test",
+                  "properties": {
+                    "linkedResourceType": "Microsoft.Web/hostingEnvironments",
+                    "link": "[resourceId('Microsoft.Web/hostingEnvironments', variables('hostingEnvironments_name'))]"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "virtualNetworkPeerings": [],
+        "enableDdosProtection": false,
+        "enableVmProtection": false
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroups_NSG_name'))]",
+        "[resourceId('Microsoft.Network/routeTables', variables('route_Table_name'))]",
+        "[resourceId('Microsoft.Web/hostingEnvironments', variables('hostingEnvironments_name'))]"
+      ]
+    },
+    {
+      "comments": "Create APP Services Environment",
+      "type": "Microsoft.Web/hostingEnvironments",
+      "kind": "ASEV2",
+      "name": "[variables('hostingEnvironments_name')]",
+      "apiVersion": "2016-09-01",
+      "location": "[parameters('primary_location')]",
+      "zones": [
+        null
+      ],
+      "tags": {},
+      "scale": null,
+      "properties": {
+        "name": "[variables('hostingEnvironments_name')]",
+        "location": "[parameters('primary_location')]",
+        "vnetName": "[concat(variables('hostingEnvironments_name'),'-vnet')]",
+        "vnetResourceGroupName": "FinanceiroTI.Charging.Test",
+        "vnetSubnetName": "[concat(variables('hostingEnvironments_name'),'-subnet')]",
+        "virtualNetwork": {
+          "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworks_vnet_name'))]",
+          "subnet": "[concat(variables('hostingEnvironments_name'),'-subnet')]"
+        },
+        "internalLoadBalancingMode": "None",
+        "multiSize": "Standard_D1_V2",
+        "multiRoleCount": 2,
+        "workerPools": null,
+        "ipsslAddressCount": 2,
+        "dnsSuffix": "[concat(variables('hostingEnvironments_name'),'.p.azurewebsites.net')]",
+        "networkAccessControlList": [],
+        "frontEndScaleFactor": 15,
+        "apiManagementAccountId": null,
+        "suspended": false,
+        "dynamicCacheEnabled": null,
+        "clusterSettings": null
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworks_vnet_name'))]"
+      ]
+    },
+    {
+      "comments": "Create Web App Plan",
+      "sku": {
+        "name": "I1",
+        "tier": "Isolated",
+        "size": "I1",
+        "family": "I",
+        "capacity": 0
+      },
+      "kind": "linux",
+      "name": "[variables('serverfarms_name')]",
+      "apiVersion": "2016-09-01",
+      "location": "[parameters('primary_location')]",
+      "scale": null,
+      "properties": {
+        "name": "[variables('serverfarms_name')]",
+        "workerTierName": null,
+        "adminSiteName": null,
+        "hostingEnvironmentProfile": {
+          "id": "[resourceId('Microsoft.Web/hostingEnvironments', variables('hostingEnvironments_name'))]"
+        },
+        "perSiteScaling": true,
+        "reserved": true,
+        "targetWorkerCount": 1,
+        "targetWorkerSizeId": 0
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/hostingEnvironments', variables('hostingEnvironments_name'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Web/hostingEnvironments/multiRolePools",
+      "sku": {
+        "name": "Q1",
+        "tier": "Quantum",
+        "size": "Q1",
+        "family": "Q",
+        "capacity": 2
+      },
+      "name": "[concat(variables('hostingEnvironments_name'), '/', parameters('multiRolePools_default_name'))]",
+      "apiVersion": "2016-09-01",
+      "location": "[parameters('primary_location')]",
+      "scale": null,
+      "properties": {
+        "workerSize": "Standard_D1_V2",
+        "workerCount": 2,
+        "instanceNames": [
+          "192.168.250.9",
+          "192.168.250.8"
+        ],
+        "mdmId": "waws-prod-bay-5c6b9b74_MultiRole"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/hostingEnvironments', variables('hostingEnvironments_name'))]"
+      ]
+    } 
+  ]
+}

@@ -1,0 +1,42 @@
+﻿{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "adminUsername": {
+      "value": "financialchargingadm"
+    },
+    "adminPassword": {
+      "value": "NJI90okm"
+    },
+    "mongoAdminUsername": {
+      "value": "financialchargingadm"
+    },
+    "mongoAdminPassword": {
+      "value": "NJI90okm"
+    },
+    "environment": {
+      "value": "AzureCloud"
+    },
+    "secondaryNodeCount": {
+      "value": 2
+    },
+    "sizeOfDataDiskInGB": {
+      "value": 20
+    },
+    "dnsNamePrefix": {
+      "value": "GEN-UNIQUE"
+    },
+    "centOsVersion": {
+      "value": "7.0"
+    },
+    "primaryNodeVmSize": {
+      "value": "Standard_A3"
+    },
+    "secondaryNodeVmSize": {
+      "value": "Standard_A3"
+    },
+    "zabbixServerIPAddress": {
+      "value": "Null"
+    }
+  }
+}

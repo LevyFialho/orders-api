@@ -1,0 +1,61 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environment_suffix": {
+      "defaultValue": null,
+      "type": "string"
+    },
+    "primary_location": {
+      "defaultValue": "[resourceGroup().location]",
+      "type": "string"
+    },
+    "servicebus_namespace_name": {
+      "defaultValue": "financial-charging",
+      "type": "string"
+    }, 
+    "servicebus_rootkey_name": {
+      "defaultValue": "RootManageSharedAccessKey",
+      "type": "string"
+    } 
+  },
+  "variables": {
+    "servicebus_primary_namespace_name": "[concat(parameters('servicebus_namespace_name'), '-', parameters('environment_suffix'), '-1')]"
+  },
+  "resources": [  
+    {
+      "comments": "Create primary servicebus namespace",
+      "type": "Microsoft.ServiceBus/namespaces",
+      "sku": {
+        "name": "Standard",
+        "tier": "Standard",
+        "capacity": 1
+      },
+      "name": "[variables('servicebus_primary_namespace_name')]",
+      "apiVersion": "2017-04-01",
+      "location": "[parameters('primary_location')]",
+      "tags": {},
+      "properties": {
+        "serviceBusEndpoint": "[concat('https://', variables('servicebus_primary_namespace_name'),'.servicebus.windows.net:443/')]"
+      } 
+    },
+    {
+      "comments": "Setup primary servicebus authorization rules",
+      "type": "Microsoft.ServiceBus/namespaces/AuthorizationRules",
+      "name": "[concat(variables('servicebus_primary_namespace_name'), '/', parameters('servicebus_rootkey_name'))]",
+      "apiVersion": "2017-04-01",
+      "location": "[parameters('primary_location')]",
+      "properties": {
+        "rights": [
+          "Listen",
+          "Manage",
+          "Send"
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ServiceBus/namespaces', variables('servicebus_primary_namespace_name'))]"
+
+      ]
+    } 
+  ]
+}

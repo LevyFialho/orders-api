@@ -1,0 +1,80 @@
+version: '3.4'
+
+services:
+  financialchargingapi.application:
+    environment:
+        - ASPNETCORE_ENVIRONMENT=Local
+    image: ${DOCKER_REGISTRY}financialchargingapiapplication
+    build:
+      context: .
+      dockerfile: src/OrdersApi.Application/Dockerfile
+    ports:
+      - "32805:80"
+    networks:
+      - redis-network 
+      - sqlserver-network
+      - rabbitmq-network
+      - mongodb-network
+    depends_on:
+      - "sqlserver"
+      - "redis" 
+      - "rabbitmq"
+      - "mongodb"
+
+  redis:
+    image: redis
+    command: ["redis-server", "--appendonly", "yes"] 
+    ports:
+      - "16379:6379"
+    sysctls:
+      net.core.somaxconn: 1024
+    volumes:
+      - financialchargingapi_redis-volume:/data
+    networks:
+      - redis-network
+      
+  sqlserver:
+    image: microsoft/mssql-server-linux:latest
+    environment:
+      SA_PASSWORD: XDR56tfc!@
+      ACCEPT_EULA: Y
+    volumes:
+      - financialchargingapi_mssql-volume:/var/opt/mssql
+    ports:
+      - "1433:1433" 
+    networks:
+      - sqlserver-network
+
+  rabbitmq:
+    image: ${DOCKER_REGISTRY}financialchargingapiapplication_rabbitmq
+    build:
+      context: .
+      dockerfile: src/OrdersApi.RabbitMQ/Dockerfile
+    ports:
+      - "15672:15672"
+    networks:
+      - rabbitmq-network
+
+  mongodb:
+    image: mongo:latest  
+    ports:
+      - "27017:27017"
+    volumes:
+      - financialchargingapi_mongodb-volume:/data/db
+    networks:
+      - mongodb-network
+
+networks: 
+    redis-network:
+        driver: bridge
+    sqlserver-network:
+        driver: bridge
+    rabbitmq-network:
+        driver: bridge
+    mongodb-network:
+        driver: bridge
+
+volumes:
+  financialchargingapi_mssql-volume:
+  financialchargingapi_mongodb-volume:
+  financialchargingapi_redis-volume:

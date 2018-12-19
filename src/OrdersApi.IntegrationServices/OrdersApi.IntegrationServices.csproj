@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <ProjectGuid>{2BFEC998-0C15-4DD1-98BA-8721DFFE6256}</ProjectGuid>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OrdersApi.Infrastructure\OrdersApi.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

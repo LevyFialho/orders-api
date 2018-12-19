@@ -1,0 +1,140 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environment_suffix": {
+      "defaultValue": null,
+      "type": "string"
+    },
+    "primary_location": {
+      "defaultValue": "[resourceGroup().location]",
+      "type": "string"
+    },
+    "secondary_location": {
+      "defaultValue": "West US 2",
+      "type": "string"
+    },
+    "sqlServerName": {
+      "type": "string",
+      "defaultValue": "financial-charging-sql",
+      "metadata": {
+        "description": "The name of the primary SQL Server."
+      }
+    },
+    "sqlServerAdminUsername": {
+      "type": "string",
+      "defaultValue": "financial-charging-admin",
+      "metadata": {
+        "description": "The administrator username of the primary SQL Server."
+      }
+    },
+    "sqlServerAdminPassword": {
+      "type": "securestring",
+      "defaultValue": "NJI90okm!@#",
+      "metadata": {
+        "description": "The administrator password of the primary SQL Server."
+      }
+    },
+    "sqlFailoverGroupName": {
+      "type": "string",
+      "defaultValue": "financialchargingfailover",
+      "metadata": {
+        "description": "The name of the failover group."
+      }
+    }
+
+  },
+  "variables": {
+    "sqlServerPrimaryName": "[concat(parameters('sqlServerName'), '-', parameters('environment_suffix'), '-1')]",
+    "sqlServerSecondaryName": "[concat(parameters('sqlServerName'), '-', parameters('environment_suffix'), '-2')]",
+    "sqlFinancialChargingDatabaseName": "financial-charging-db",
+    "sqlDatabaseServiceObjective": "Basic",
+    "sqlDatabaseEdition": "Basic"
+  },
+  "resources": [ 
+    //
+    //SQL Server setup
+    //
+    {
+      "type": "Microsoft.Sql/servers",
+      "kind": "v12.0",
+      "name": "[variables('sqlServerPrimaryName')]",
+      "apiVersion": "2014-04-01-preview",
+      "location": "[parameters('primary_location')]",
+      "properties": {
+        "administratorLogin": "[parameters('sqlServerAdminUsername')]",
+        "administratorLoginPassword": "[parameters('sqlServerAdminPassword')]",
+        "version": "12.0"
+      },
+      "resources": [
+        {
+          "apiVersion": "2015-05-01-preview",
+          "type": "failoverGroups",
+          "name": "[parameters('sqlFailoverGroupName')]",
+          "properties": {
+            "serverName": "[variables('sqlServerPrimaryName')]",
+            "partnerServers": [
+              {
+                "id": "[resourceId('Microsoft.Sql/servers/', variables('sqlServerSecondaryName'))]"
+              }
+            ],
+            "readWriteEndpoint": {
+              "failoverPolicy": "Automatic",
+              "failoverWithDataLossGracePeriodMinutes": 60
+            },
+            "readOnlyEndpoint": {
+              "failoverPolicy": "Disabled"
+            },
+            "databases": [
+              "[resourceId('Microsoft.Sql/servers/databases', variables('sqlServerPrimaryName'), variables('sqlFinancialChargingDatabaseName'))]"
+            ]
+          },
+          "dependsOn": [
+            "[variables('sqlServerPrimaryName')]",
+            "[resourceId('Microsoft.Sql/servers/databases', variables('sqlServerPrimaryName'), variables('sqlFinancialChargingDatabaseName'))]",
+            "[resourceId('Microsoft.Sql/servers', variables('sqlServerSecondaryName'))]"
+          ]
+        },
+        {
+          "name": "[variables('sqlFinancialChargingDatabaseName')]",
+          "type": "databases",
+          "apiVersion": "2014-04-01-preview",
+          "location": "[parameters('primary_location')]",
+          "dependsOn": [
+            "[variables('sqlServerPrimaryName')]"
+          ],
+          "properties": {
+            "edition": "[variables('sqlDatabaseEdition')]",
+            "requestedServiceObjectiveName": "[variables('sqlDatabaseServiceObjective')]"
+          }
+        },
+        {
+          "type": "firewallrules",
+          "apiVersion": "2014-04-01",
+          "dependsOn": [
+		    "[variables('sqlServerPrimaryName')]",
+            "[variables('sqlFinancialChargingDatabaseName')]"
+          ],
+          "location": "[parameters('primary_location')]",
+          "name": "AllowAllWindowsAzureIps",
+          "properties": {
+            "endIpAddress": "0.0.0.0",
+            "startIpAddress": "0.0.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "Microsoft.Sql/servers",
+      "kind": "v12.0",
+      "name": "[variables('sqlServerSecondaryName')]",
+      "apiVersion": "2014-04-01-preview",
+      "location": "[parameters('secondary_location')]",
+      "properties": {
+        "administratorLogin": "[parameters('sqlServerAdminUsername')]",
+        "administratorLoginPassword": "[parameters('sqlServerAdminPassword')]",
+        "version": "12.0"
+      }
+    }
+  ]
+}

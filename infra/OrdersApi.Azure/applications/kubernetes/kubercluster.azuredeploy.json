@@ -1,0 +1,71 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environment_suffix": {
+      "defaultValue": null,
+      "type": "string"
+    },
+    "primary_location": {
+      "defaultValue": "[resourceGroup().location]",
+      "type": "string"
+    }, 
+    "managedKuberClusters_name": {
+      "defaultValue": "financial-charging-kuber",
+      "type": "string"
+    } 
+  },
+  "variables": {  
+    "managedKuberClusters_name": "[concat(parameters('managedKuberClusters_name'), '-', parameters('environment_suffix'))]" 
+  },
+  "resources": [
+    {
+      "comments": "Create kubernet cluster",
+      "type": "Microsoft.ContainerService/managedClusters",
+      "name": "[variables('managedKuberClusters_name')]",
+      "apiVersion": "2018-03-31",
+      "location": "[parameters('primary_location')]",
+      "scale": null,
+      "properties": {
+        "kubernetesVersion": "1.11.2",
+        "dnsPrefix": "[variables('managedKuberClusters_name')]",
+        "agentPoolProfiles": [
+          {
+            "name": "agentpool",
+            "count": 3,
+            "vmSize": "Standard_DS2_v2",
+            "storageProfile": "ManagedDisks",
+            "maxPods": 110,
+            "osType": "Linux"
+          }
+        ],
+        "servicePrincipalProfile": {
+          "clientId": "e68fdd5d-d365-4cbf-b2eb-6da2ef75dd7a"
+        },
+        "addonProfiles": {
+          "httpApplicationRouting": {
+            "enabled": true 
+            //,"config": {
+            //    "HTTPApplicationRoutingZoneName": "c7f2e77078704a9eadec.westus.aksapp.io"
+            //}
+          },
+          "omsagent": {
+            "enabled": true
+            //,"config": {
+            //    "logAnalyticsWorkspaceResourceID": "[variables('managedClusters_logAnalyticsWorkspaceResourceID')]"
+            //}
+          }
+        },
+        "enableRBAC": false,
+        "networkProfile": {
+          "networkPlugin": "kubenet",
+          "podCidr": "10.244.0.0/16",
+          "serviceCidr": "10.0.0.0/16",
+          "dnsServiceIP": "10.0.0.10",
+          "dockerBridgeCidr": "172.17.0.1/16"
+        }
+      },
+      "dependsOn": []
+    } 
+  ]
+}

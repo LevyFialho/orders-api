@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  financialchargingapi.application:
+    image: ${DOCKER_REGISTRY}financialchargingapiapplication
+    build:
+      context: .
+      dockerfile: src/OrdersApi.Application/Dockerfile

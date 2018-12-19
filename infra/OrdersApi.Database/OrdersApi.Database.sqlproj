@@ -1,0 +1,106 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Name>OrdersApi.Database</Name>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectVersion>4.1</ProjectVersion>
+    <ProjectGuid>{0f12088f-5e64-4d53-bde8-720d98688eea}</ProjectGuid>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql130DatabaseSchemaProvider</DSP>
+    <OutputType>Database</OutputType>
+    <RootPath>
+    </RootPath>
+    <RootNamespace>SQL_Server_Database_Project_Template</RootNamespace>
+    <AssemblyName>SQL_Server_Database_Project_Template</AssemblyName>
+    <ModelCollation>1033, CI</ModelCollation>
+    <DefaultFileStructure>BySchemaAndSchemaType</DefaultFileStructure>
+    <DeployToDatabase>True</DeployToDatabase>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetLanguage>CS</TargetLanguage>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <SqlServerVerification>False</SqlServerVerification>
+    <IncludeCompositeObjects>True</IncludeCompositeObjects>
+    <TargetDatabaseSet>True</TargetDatabaseSet>
+    <GenerateCreateScript>True</GenerateCreateScript>
+    <AllowSnapshotIsolation>True</AllowSnapshotIsolation>
+    <ReadCommittedSnapshot>True</ReadCommittedSnapshot>
+    <PageVerify>CHECKSUM</PageVerify>
+    <TargetDatabase>FinancialChargingDB</TargetDatabase>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\Release\</OutputPath>
+    <BuildScriptName>$(MSBuildProjectName).sql</BuildScriptName>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>bin\Debug\</OutputPath>
+    <BuildScriptName>$(MSBuildProjectName).sql</BuildScriptName>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">11.0</VisualStudioVersion>
+    <!-- Default to the v11.0 targets path if the targets file for the current VS version is not found -->
+    <SSDTExists Condition="Exists('$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets')">True</SSDTExists>
+    <VisualStudioVersion Condition="'$(SSDTExists)' == ''">11.0</VisualStudioVersion>
+  </PropertyGroup>
+  <Import Condition="'$(SQLDBExtensionsRefPath)' != ''" Project="$(SQLDBExtensionsRefPath)\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+  <Import Condition="'$(SQLDBExtensionsRefPath)' == ''" Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+  <ItemGroup>
+    <Folder Include="Properties" />
+    <Folder Include="Database Project" />
+    <Folder Include="Database Project\Security" />
+    <Folder Include="Database Project\Tables" />
+    <Folder Include="Database Project\Views" />
+    <Folder Include="Database Project\Programmability" />
+    <Folder Include="Database Project\Programmability\Stored Procedures" />
+    <Folder Include="Database Project\Programmability\Functions" />
+    <Folder Include="Database Project\Post Deployment" />
+    <Folder Include="Database Project\Security\Logins" />
+    <Folder Include="Database Project\Security\Users" />
+    <Folder Include="Database Project\Security\Schemas" />
+    <Folder Include="Database Project\Security\Certificates" />
+    <Folder Include="Database Project\Security\Roles" />
+    <Folder Include="Database Project\Storage" />
+    <Folder Include="Database Project\Storage\Partition Schemes" />
+    <Folder Include="Database Project\Storage\Partition Functions" />
+    <Folder Include="Database Project\Storage\Filegroups" />
+    <Folder Include="Database Project\Storage\Files" />
+    <Folder Include="Database Project\Programmability\Sequences" />
+    <Folder Include="Database Project\Programmability\Database Triggers" />
+    <Folder Include="Database Project\Programmability\Table Triggers" />
+    <Folder Include="Database Project\Synonyms" />
+    <Folder Include="Database Project\Tables\dbo" />
+    <Folder Include="Database Project\Programmability\Functions\dbo" />
+    <Folder Include="Database Project\Programmability\Database Triggers\dbo" />
+    <Folder Include="Database Project\Programmability\Table Triggers\dbo" />
+    <Folder Include="Database Project\Programmability\Sequences\dbo" />
+    <Folder Include="Database Project\Programmability\Stored Procedures\dbo" />
+    <Folder Include="Database Project\Synonyms\dbo" />
+    <Folder Include="Database Project\Views\dbo" />
+    <Folder Include="dbo\" />
+    <Folder Include="dbo\Tables\" />
+    <Folder Include="dbo\Views\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Build Include="Database Project\Tables\dbo\__MigrationHistory.sql" />
+    <Build Include="dbo\Tables\EventsToDispatch.sql" />
+    <Build Include="dbo\Tables\EventsDispatched.sql" />
+    <Build Include="dbo\Tables\__EFMigrationsHistory.sql" />
+    <Build Include="dbo\Views\EventData.sql" />
+  </ItemGroup>
+</Project>

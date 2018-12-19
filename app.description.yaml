@@ -1,0 +1,9 @@
+name: financial-charging-api
+criticality: High
+pci: False
+status: Active
+documents:  
+    api: does not have
+    changelog: https://github.com/stone-payments/financial-charging-api/blob/master/CHANGELOG.md
+    code_architecture: TBD
+    data_model: TBD

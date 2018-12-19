@@ -1,0 +1,97 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environment_suffix": {
+      "defaultValue": null,
+      "type": "string"
+    },
+    "primary_location": {
+      "defaultValue": "[resourceGroup().location]",
+      "type": "string"
+    },
+    "secondary_location": {
+      "defaultValue": "West US 2",
+      "type": "string"
+    },
+    "storage_server_name": {
+      "defaultValue": "finchargingstorage",
+      "type": "string"
+    },
+    "redis_server_name": {
+      "defaultValue": "financial-charging",
+      "type": "string"
+    }
+  },
+  "variables": {
+    "storage_connection_prefix": "[concat('DefaultEndpointsProtocol=https;BlobEndpoint=https://', variables('storage_server_name'),'.blob.core.windows.net/;AccountName=', variables('storage_server_name'), ';AccountKey=')]",
+    "storage_server_name": "[concat(parameters('storage_server_name'), parameters('environment_suffix'))]",
+    "redis_server_name": "[concat(parameters('redis_server_name'),'-', parameters('environment_suffix'))]"
+  },
+  "resources": [  
+    {
+      "comments": "Create Storage for Redis.",
+      "type": "Microsoft.Storage/storageAccounts",
+      "sku": {
+        "name": "Standard_RAGRS",
+        "tier": "Standard"
+      },
+      "kind": "Storage",
+      "name": "[variables('storage_server_name')]",
+      "apiVersion": "2018-03-01-preview",
+      "location": "[parameters('primary_location')]",
+      "tags": {},
+      "properties": {
+        "networkAcls": {
+          "bypass": "AzureServices",
+          "virtualNetworkRules": [],
+          "ipRules": [],
+          "defaultAction": "Allow"
+        },
+        "supportsHttpsTrafficOnly": false,
+        "encryption": {
+          "services": {
+            "file": {
+              "enabled": true
+            },
+            "blob": {
+              "enabled": true
+            }
+          },
+          "keySource": "Microsoft.Storage"
+        }
+      } 
+    },
+    {
+      "comments": "Setup redis cluster.",
+      "type": "Microsoft.Cache/Redis",
+      "name": "[variables('redis_server_name')]",
+      "apiVersion": "2017-10-01",
+      "location": "[parameters('primary_location')]",
+      "tags": {},
+      "properties": {
+        "sku": {
+          "name": "Premium",
+          "family": "P",
+          "capacity": 1
+        },
+        "enableNonSslPort": false,
+        "redisConfiguration": {
+          "maxclients": "7500",
+          "maxmemory-reserved": "214",
+          "maxfragmentationmemory-reserved": "267",
+          "aof-backup-enabled": "false",
+          "rdb-backup-enabled": "true",
+          "rdb-backup-frequency": "60",
+          "rdb-backup-max-snapshot-count": "1",
+          "maxmemory-delta": "214",
+          "rdb-storage-connection-string": "[concat(variables('storage_connection_prefix'), listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storage_server_name')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value)]"
+        },
+        "shardCount": 2
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storage_server_name'))]"
+      ]
+    }
+  ]
+}

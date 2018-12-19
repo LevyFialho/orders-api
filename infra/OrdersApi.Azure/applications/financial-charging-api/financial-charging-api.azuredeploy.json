@@ -1,0 +1,128 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environment_suffix": {
+      "defaultValue": null,
+      "type": "string"
+    },
+    "primary_location": {
+      "defaultValue": "[resourceGroup().location]",
+      "type": "string"
+    },
+    "mongodb_database_name": {
+      "defaultValue": "financial-charging",
+      "type": "string"
+    },
+    "secondary_location": {
+      "defaultValue": "West US 2",
+      "type": "string"
+    },
+    "redis_server_name": {
+      "defaultValue": "financial-charging",
+      "type": "string"
+    },
+    "servicebus_namespace_name": {
+      "defaultValue": "financial-charging",
+      "type": "string"
+    },
+    "servicebus_subscription_name": {
+      "defaultValue": "financial-charging-api",
+      "type": "string"
+    },
+    "servicebus_topic_name": {
+      "defaultValue": "financial-charging",
+      "type": "string"
+    }, 
+    "topic_authorizationRule_name": {
+      "defaultValue": "financial-charging-api",
+      "type": "string"
+    },
+    "svcPlanName": {
+      "type": "string",
+      "defaultValue": "finchargingapps",
+      "metadata": {
+        "description": "The name of the App Service plan."
+      }
+    },
+    "webSiteName": {
+      "defaultValue": "financial-charging-api",
+      "type": "string"
+    },
+    "sqlServerName": {
+      "type": "string",
+      "defaultValue": "financial-charging-sql",
+      "metadata": {
+        "description": "The name of the primary SQL Server."
+      }
+    },
+    "sqlServerAdminUsername": {
+      "type": "string",
+      "defaultValue": "financial-charging-admin",
+      "metadata": {
+        "description": "The administrator username of the primary SQL Server."
+      }
+    },
+    "sqlServerAdminPassword": {
+      "type": "securestring",
+      "defaultValue": "NJI90okm!@#",
+      "metadata": {
+        "description": "The administrator password of the primary SQL Server."
+      }
+    },	
+	  "financial_charging_api_queue_name": {
+      "defaultValue": "financial-charging-api-queue",
+      "type": "string"
+    },		
+	  "financial_charging_api_queue_sas_name": {
+      "defaultValue": "financial-charging-api-queue-sas",
+      "type": "string"
+    }
+  },
+  "variables": {
+    "settingName": "[concat(toLower(variables('svcPlanName')), '-setting')]",
+    "mongodb_database_name": "[concat(parameters('mongodb_database_name'), '-', parameters('environment_suffix'), '-1')]",
+    "redis_server_name": "[concat(parameters('redis_server_name'),'-', parameters('environment_suffix'))]",
+    "targetResourceId": "[resourceId('Microsoft.Web/serverFarms/', variables('svcPlanName'))]",
+    "webSiteName": "[concat(parameters('webSiteName'), '-', parameters('environment_suffix'))]",
+    "svcPlanName": "[concat(parameters('svcPlanName'), parameters('environment_suffix'))]",
+    "sqlServerPrimaryName": "[concat(parameters('sqlServerName'), '-', parameters('environment_suffix'), '-1')]",
+    "sqlFinancialChargingDatabaseName": "financial-charging-db",
+    "servicebus_name": "[concat(parameters('servicebus_namespace_name'), '-', parameters('environment_suffix'), '-1')]"
+  },
+  "resources": [
+    {
+      "comments": "Create website",
+      "apiVersion": "2016-08-01",
+      "kind": "app,linux",
+      "name": "[variables('webSiteName')]",
+      "type": "Microsoft.Web/sites",
+      "location": "[parameters('primary_location')]",
+      "properties": {
+        "name": "[variables('webSiteName')]",
+        "serverFarmId": "[concat(resourceGroup().Id, '/providers/Microsoft.Web/serverfarms/',  variables('svcPlanName'))]"
+      },
+      "resources": [
+        {
+          "apiVersion": "2015-08-01",
+          "type": "config",
+          "name": "appsettings",
+          "dependsOn": [
+            "[concat('Microsoft.Web/Sites/', variables('webSiteName'))]" 
+          ],
+          "properties": {
+            "HangfireSettings:RedisConnectionString": "[concat(variables('redis_server_name'),'.redis.cache.windows.net:6380,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('redis_server_name')), '2015-08-01').primaryKey)]",
+            "RedisSettings:SnapshotConnectionString": "[concat(variables('redis_server_name'),'.redis.cache.windows.net:6380,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('redis_server_name')), '2015-08-01').primaryKey)]",
+            "MongoSettings:ConnectionString": "[concat('mongodb://',variables('mongodb_database_name'),':',listKeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('mongodb_database_name')), '2015-04-08').primaryMasterKey,'@',variables('mongodb_database_name'),'.documents.azure.com:10255/?ssl=true&replicaSet=globaldb')]",
+            "ConnectionStrings:EventStoreDatabase": "[concat('Data Source=tcp:', variables('sqlServerPrimaryName'),'.database.windows.net,1433;Initial Catalog=', variables('sqlFinancialChargingDatabaseName'), ';User Id=', parameters('sqlServerAdminUsername'), '@', variables('sqlServerPrimaryName'), '.database.windows.net;Password=', parameters('sqlServerAdminPassword'), ';')]",
+            "SqlServerEventStoreSettings:ConnectionString": "[concat('Data Source=tcp:', variables('sqlServerPrimaryName'),'.database.windows.net,1433;Initial Catalog=', variables('sqlFinancialChargingDatabaseName'), ';User Id=', parameters('sqlServerAdminUsername'), '@', variables('sqlServerPrimaryName'), '.database.windows.net;Password=', parameters('sqlServerAdminPassword'), ';')]",
+            "MessageBrokerSettings:EventBusConnection": "[concat('Endpoint=sb://',variables('servicebus_name'),'.servicebus.windows.net/;SharedAccessKeyName=',parameters('topic_authorizationRule_name'),';SharedAccessKey=',listKeys(resourceId('Microsoft.ServiceBus/namespaces/topics/authorizationRules', variables('servicebus_name'), parameters('servicebus_topic_name'), parameters('topic_authorizationRule_name')), '2017-04-01').primaryKey,';EntityPath=',parameters('servicebus_topic_name'))]",
+            "ManagementConfiguration:MongoDbComponents:0:ConnectionString": "[concat('mongodb://',variables('mongodb_database_name'),':',listKeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('mongodb_database_name')), '2015-04-08').primaryMasterKey,'@',variables('mongodb_database_name'),'.documents.azure.com:10255/?ssl=true&replicaSet=globaldb')]",
+            "ManagementConfiguration:RedisComponents:0:ConnectionString": "[concat(variables('redis_server_name'),'.redis.cache.windows.net:6380,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('redis_server_name')), '2015-08-01').primaryKey)]",
+			      "MessageBrokerSettings:CommandBusConnection": "[concat('Endpoint=sb://',variables('servicebus_name'),'.servicebus.windows.net/;SharedAccessKeyName=',parameters('financial_charging_api_queue_sas_name'),';SharedAccessKey=',listKeys(resourceId('Microsoft.ServiceBus/namespaces/queues/authorizationRules', variables('servicebus_name'), parameters('financial_charging_api_queue_name'), parameters('financial_charging_api_queue_sas_name')), '2017-04-01').primaryKey,';EntityPath=',parameters('financial_charging_api_queue_name'))]"
+          }
+        }
+      ]
+    }
+  ] 
+}

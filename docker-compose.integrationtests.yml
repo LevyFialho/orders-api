@@ -1,0 +1,61 @@
+version: '3.4'
+
+services:
+  financialchargingapi.integrationtests:
+    environment: 
+      - BLOWUP
+      - AppSettingsFile=appsettings.local.json
+    image: ${DOCKER_REGISTRY}financialchargingapiintegrationtests
+    build:
+      context: .
+      dockerfile: tests/OrdersApi.IntegrationTests/Dockerfile
+    entrypoint: dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover 
+    networks:
+      - redis-network 
+      - sqlserver-network
+      - rabbitmq-network
+      - mongodb-network
+    depends_on:
+      - "sqlserver"
+      - "redis" 
+      - "rabbitmq"
+      - "mongodb"
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "16379:6379"
+    networks:
+      - redis-network
+      
+  sqlserver:
+    image: microsoft/mssql-server-linux:latest
+    environment:
+      SA_PASSWORD: XDR56tfc!@
+      ACCEPT_EULA: Y 
+    ports:
+      - "1433:1433" 
+    networks:
+      - sqlserver-network
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    networks:
+      - rabbitmq-network
+
+  mongodb:
+    image: mongo:latest  
+    ports:
+      - "27017:27017" 
+    networks:
+      - mongodb-network
+
+networks: 
+    redis-network:
+        driver: bridge
+    sqlserver-network:
+        driver: bridge
+    rabbitmq-network:
+        driver: bridge
+    mongodb-network:
+        driver: bridge 

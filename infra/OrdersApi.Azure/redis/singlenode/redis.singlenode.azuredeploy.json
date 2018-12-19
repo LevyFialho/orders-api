@@ -1,0 +1,45 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environment_suffix": {
+      "defaultValue": null,
+      "type": "string"
+    },
+    "primary_location": {
+      "defaultValue": "[resourceGroup().location]",
+      "type": "string"
+    },
+    "redis_server_name": {
+      "defaultValue": "financial-charging",
+      "type": "string"
+    }
+  },
+  "variables": {
+    "redis_server_name": "[concat(parameters('redis_server_name'),'-', parameters('environment_suffix'))]"
+  },
+  "resources": [ 
+    {
+      "comments": "Setup redis cache.",
+      "type": "Microsoft.Cache/Redis",
+      "name": "[variables('redis_server_name')]",
+      "apiVersion": "2017-10-01",
+      "location": "[parameters('primary_location')]",
+      "tags": {},
+      "properties": {
+        "sku": {
+          "name": "Basic",
+          "family": "C",
+          "capacity": 0
+        },
+        "enableNonSslPort": false,
+        "redisConfiguration": {
+          "maxclients": "100"
+          //"maxmemory-reserved": "2",
+          //"maxfragmentationmemory-reserved": "12",
+          //"maxmemory-delta": "2"
+        }
+      } 
+    }
+  ]
+}

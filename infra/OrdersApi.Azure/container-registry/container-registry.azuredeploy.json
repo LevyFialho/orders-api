@@ -1,0 +1,77 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environment_suffix": {
+      "defaultValue": null,
+      "type": "string"
+    },
+    "primary_location": {
+      "defaultValue": "[resourceGroup().location]",
+      "type": "string"
+    },
+    "secondary_location": {
+      "defaultValue": "West US 2",
+      "type": "string"
+    }, 
+    "container_registry_server_name": {
+      "defaultValue": "financialcharging",
+      "type": "string"
+    },
+    "container_registry_secondary_suffix": {
+      "defaultValue": "westus",
+      "type": "string"
+    },
+    "container_registry_primary_suffix": {
+      "defaultValue": "eastus",
+      "type": "string"
+    }
+  },
+  "variables": {
+    "container_registry_server_name": "[concat(parameters('container_registry_server_name'), parameters('environment_suffix'))]"
+  },
+  "resources": [  
+    {
+      "comments": "Creates container registry.",
+      "type": "Microsoft.ContainerRegistry/registries",
+      "sku": {
+        "name": "Premium",
+        "tier": "Premium"
+      },
+      "name": "[variables('container_registry_server_name')]",
+      "apiVersion": "2017-10-01",
+      "location": "[parameters('primary_location')]",
+      "tags": {},
+      "properties": {
+        "adminUserEnabled": true
+      },
+      "dependsOn": []
+    },
+    {
+      "comments": "Setup replication for container registry.",
+      "type": "Microsoft.ContainerRegistry/registries/replications",
+      "name": "[concat(variables('container_registry_server_name'), '/', parameters('container_registry_secondary_suffix'))]",
+      "apiVersion": "2017-10-01",
+      "location": "[parameters('secondary_location')]",
+      "tags": {},
+      "properties": { 
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ContainerRegistry/registries', variables('container_registry_server_name'))]"
+      ]
+    },
+    {
+      "comments": "Setup replication for container registry.",
+      "type": "Microsoft.ContainerRegistry/registries/replications",
+      "name": "[concat(variables('container_registry_server_name'), '/', parameters('container_registry_primary_suffix'))]",
+      "apiVersion": "2017-10-01",
+      "location": "[parameters('primary_location')]",
+      "tags": {},
+      "properties": { 
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ContainerRegistry/registries', variables('container_registry_server_name'))]"
+      ]
+    }
+  ]
+}

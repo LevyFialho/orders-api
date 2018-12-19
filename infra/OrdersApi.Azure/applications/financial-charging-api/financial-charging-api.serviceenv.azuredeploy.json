@@ -1,0 +1,57 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environment_suffix": {
+      "defaultValue": null,
+      "type": "string"
+    },
+    "primary_location": {
+      "defaultValue": "[resourceGroup().location]",
+      "type": "string"
+    },
+    "secondary_location": {
+      "defaultValue": "West US 2",
+      "type": "string"
+    },
+    "svcPlanName": {
+      "type": "string",
+      "defaultValue": "finchargingapps",
+      "metadata": {
+        "description": "The name of the App Service plan."
+      }
+    },
+    "webSiteName": {
+      "defaultValue": "financial-charging-api",
+      "type": "string"
+    },
+    "hostingEnvironments_name": {
+      "defaultValue": "financial-charging-appenv",
+      "type": "String"
+    }
+  },
+  "variables": {
+    "settingName": "[concat(toLower(variables('svcPlanName')), '-setting')]",
+    "hostingEnvironments_name": "[concat(parameters('hostingEnvironments_name'), '-', parameters('environment_suffix'))]",
+    "targetResourceId": "[resourceId('Microsoft.Web/serverFarms/', variables('svcPlanName'))]",
+    "webSiteName": "[concat(parameters('webSiteName'), '-', parameters('environment_suffix'))]",
+    "svcPlanName": "[concat(parameters('svcPlanName'), parameters('environment_suffix'))]"
+  },
+  "resources": [
+    {
+      "comments": "Create website",
+      "apiVersion": "2016-08-01",
+      "kind": "app,linux",
+      "name": "[variables('webSiteName')]",
+      "type": "Microsoft.Web/sites",
+      "location": "[parameters('primary_location')]",
+      "properties": {
+        "name": "[variables('webSiteName')]",
+        "hostingEnvironmentProfile": {
+          "id": "[concat(resourceGroup().Id, '/providers/Microsoft.Web/hostingEnvironments/',  variables('hostingEnvironments_name'))]"
+        },
+        "serverFarmId": "[concat(resourceGroup().Id, '/providers/Microsoft.Web/serverfarms/',  variables('svcPlanName'))]"
+      }
+    }
+  ] 
+}

@@ -1,0 +1,37 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environment_suffix": {
+      "defaultValue": null,
+      "type": "string"
+    },
+    "primary_location": {
+      "defaultValue": "[resourceGroup().location]",
+      "type": "string"
+    },
+    "mongodb_database_name": {
+      "defaultValue": "financial-charging",
+      "type": "string"
+    }
+  },
+  "variables": {
+    "mongodb_database_name": "[concat(parameters('mongodb_database_name'), '-', parameters('environment_suffix'), '-1')]"
+  },
+  "resources": [  
+    {
+      "comments": "Create MongoDB",
+      "type": "Microsoft.DocumentDB/databaseAccounts",
+      "kind": "MongoDB",
+      "name": "[variables('mongodb_database_name')]",
+      "apiVersion": "2015-04-08",
+      "location": "[parameters('primary_location')]",
+      "tags": {
+        "defaultExperience": "MongoDB"
+      },
+      "properties": {
+        "databaseAccountOfferType": "Standard"
+      } 
+    }
+  ]
+}
