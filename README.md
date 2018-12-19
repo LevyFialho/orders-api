@@ -1,3 +1,7 @@
+### Software Details ###
+* FRAMEWORK - .NET Core 2.0
+* I.D.E     - VISUAL STUDIO 2017
+
 ### Objective ###
 
 * Provide a Web API to receive, save and process billing orders. 
@@ -8,9 +12,35 @@
 ![Architecture](Architeture.png "Aplication architecture diagram")
 
 
-### Software Details ###
-* FRAMEWORK - .NET Core 2.0
-* I.D.E     - VISUAL STUDIO 2017
+### Architecture details ###
+
+ASP.NET Layer & API Controllers
+Responsible for  HTTP requests authentication and validation.
+This Layer will call the Command Bus and Query Bus to process the requests or to search for data in the document store. 
+It is also responsible for other Middlewares that format the response (total processing time and http status code for isntance) 
+ 
+Query Bus 
+This layer is responsible for processing search requests in the document store, separating  Read/Write contexts to avoid overload and enable horizontal scaling. 
+
+Command Bus / Command Scheduler
+This layer is responsible for the distributed processing of application commands with two options for providers: Rabbit MQ or Service Bus Queues.
+
+Event Bus 
+This layer is responsible for the distributed processing of application events with two options for providers: Rabbit MQ or Service Bus topics.
+
+Command Handlers
+Business layer, responsible for the commands processing this layer will add new events to the event store and publish them in the event bus. 
+This layer also uses a snapshot provider for caching purposes.
+
+Event Store Provider 
+Data access providers, event sourcing (https://martinfowler.com/eaaDev/EventSourcing.html).
+
+Snapshot Provider  
+Cache provider
+
+Event Handlers (Saga Process Manager)
+Business layer, responsible for the internal events processing this layer will update the data in the document store and schedule new commands to push the state machine (similar to Saga processing: https://microservices.io/patterns/data/saga.html).
+
 
 ### How do I get set up? ###
 
