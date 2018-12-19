@@ -19,26 +19,26 @@
 * This Layer will call the Command Bus and Query Bus to process the requests or to search for data in the document store. 
 * It is also responsible for other Middlewares that format the response (total processing time and http status code for isntance) 
  
-##Query Bus## 
+## Query Bus ## 
 * This layer is responsible for processing search requests in the document store, separating  Read/Write contexts to avoid overload and enable horizontal scaling. 
 
-##Command Bus / Command Scheduler##
+## Command Bus / Command Scheduler ##
 * This layer is responsible for the distributed processing of application commands with two options for providers: Rabbit MQ or Service Bus Queues.
 
-##Event Bus## 
+## Event Bus ## 
 * This layer is responsible for the distributed processing of application events with two options for providers: Rabbit MQ or Service Bus topics.
 
-##Command Handlers##
+## Command Handlers ##
 * Business layer, responsible for the commands processing this layer will add new events to the event store and publish them in the event bus. 
 * This layer also uses a snapshot provider for caching purposes.
 
-##Event Store Provider## 
+## Event Store Provider ## 
 * Data access providers, event sourcing (https://martinfowler.com/eaaDev/EventSourcing.html).
 
-##Snapshot Provider##  
+## Snapshot Provider ##  
 * Cache provider
 
-##Event Handlers (Saga Process Manager)##
+## Event Handlers (Saga Process Manager) ##
 * Business layer, responsible for the internal events processing this layer will update the data in the document store and schedule new commands to push the state machine (similar to Saga processing: https://microservices.io/patterns/data/saga.html).
 
 
