@@ -1,7 +1,8 @@
-### Business Objective ###
+### Objective ###
 
 * Provide a Web API to receive, save and process billing orders. 
-* The billing orders can be processed in different ways, providing a higher chance of settlement.	 
+* This example shows the usage of some patterns like CQRS, Event sourcing and other cool stuff (Check the architecture diagram)
+* Feel free to clone and open pull requests
 	 
 ### Application Architecture ###
 ![Architecture](Architeture.png "Aplication architecture diagram")
@@ -120,28 +121,24 @@
 
 | LegacyApiSettings | Type | Description                          |
 | ------------- | ------------- | -------------|
-| ApplicationUri | string  | Base http uri used to build the requests |
-| PosRentKey  | string  | External key for the POS Rent product |
-| PosRentChargeTypeCode  | string  | Charge type code POS Rent product in the acquirer API |
-| ExternalPosRentKey  | string  | External key for the External/Partners POS Rent product |
-| ExternalPosRentChargeTypeCode  | string  | Charge type code External/Partners POS Rent product in the acquirer API |	 
+| ApplicationUri | string  | Base http uri used to build the requests | 
 | DefaultChargeTypeCode | string  | Default charge type code | 
 | DefaultCurrencyCode | string  | Default currency code  | 
 | AuthenticationToken | string  | Authentication token | 
 | UseMockApi | bool  | Mock feature flag |
    
 ### Build Server ###
-* you should use VSTS as the build server tool for this application.  
+
+Use VSTS as the build server tool for this application.  
  
 
 ### Load Tests ###
 
-We are using JMeter (https://jmeter.apache.org/download_jmeter.cgi) as load testing tool. To run the load tests for the Financial Charging API you need to open JMeter (jmeter.bat inside bin folder) with the following parameters:
+Use JMeter (https://jmeter.apache.org/download_jmeter.cgi) as load testing tool. To run the load tests for the  API you need to open JMeter (jmeter.bat inside bin folder) with the following parameters:
 
-* secret -> api secret stored in GIM
 * hostname -> api hostname
 * port -> api port
-* clientkey -> client application key also stored in GIM
+* clientkey -> client application key
 
 Ex.:
 
